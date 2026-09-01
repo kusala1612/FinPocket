@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FinPocket Profile — Manage your account settings.">
+    <title>Profile — FinPocket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="user-dashboard.html" class="sidebar-brand">
+                    <div class="logo-icon">💰</div>
+                    <span>FinPocket</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="user-dashboard.html" class="nav-item" id="nav-dashboard-link">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="#" class="nav-item coming-soon">
+                        <span class="nav-icon">💳</span> Transactions
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <a href="profile.html" class="nav-item active">
+                        <span class="nav-icon">👤</span> Profile
+                    </a>
+                    <a href="#" class="nav-item logout-btn" style="color: var(--danger);">
+                        <span class="nav-icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="sidebar-user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebar-user-name">Loading...</div>
+                        <div class="user-role" id="sidebar-user-role">Member</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                    <div class="topbar-title">
+                        <h1>My Profile</h1>
+                        <p>Manage your account information</p>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn logout-btn" aria-label="Logout">🚪</button>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="dashboard-content">
+                <!-- Alert container -->
+                <div id="profile-alert"></div>
+
+                <div class="dashboard-section profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar" id="profile-avatar">?</div>
+                        <div class="profile-info">
+                            <h2 id="profile-name-display">Loading...</h2>
+                            <p>Manage your personal information below</p>
+                        </div>
+                    </div>
+
+                    <form id="profile-form" class="profile-form" novalidate>
+                        <div class="form-group">
+                            <label for="profile-fullname">Full Name</label>
+                            <input type="text" id="profile-fullname" class="form-control"
+                                   placeholder="Your full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-email">Email Address</label>
+                            <input type="email" id="profile-email" class="form-control" disabled
+                                   placeholder="Your email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-phone">Phone Number</label>
+                            <input type="tel" id="profile-phone" class="form-control"
+                                   placeholder="Your phone number">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-role">Role</label>
+                            <input type="text" id="profile-role" class="form-control" disabled
+                                   placeholder="Role">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profile-created">Member Since</label>
+                            <input type="text" id="profile-created" class="form-control" disabled
+                                   placeholder="Account creation date">
+                        </div>
+
+                        <div class="profile-actions">
+                            <button type="submit" id="save-profile-btn" class="btn btn-primary">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-ghost" onclick="loadProfile()">
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+    <script>
+        // Adjust dashboard link based on role
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = getCurrentUser();
+            const dashLink = document.getElementById('nav-dashboard-link');
+            if (user && user.role === 'ADMIN' && dashLink) {
+                dashLink.href = 'admin-dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

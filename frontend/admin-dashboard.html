@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FinPocket Admin Dashboard — System administration and user management.">
+    <title>Admin Dashboard — FinPocket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Overlay (mobile) -->
+        <div class="sidebar-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="admin-dashboard.html" class="sidebar-brand">
+                    <div class="logo-icon">💰</div>
+                    <span>FinPocket</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Administration</div>
+                    <a href="admin-dashboard.html" class="nav-item active">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </a>
+                    <a href="#" class="nav-item coming-soon">
+                        <span class="nav-icon">👥</span> User Management
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <a href="#" class="nav-item coming-soon">
+                        <span class="nav-icon">📈</span> Reports
+                    </a>
+                    <a href="#" class="nav-item coming-soon">
+                        <span class="nav-icon">⚙️</span> Settings
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Account</div>
+                    <a href="profile.html" class="nav-item">
+                        <span class="nav-icon">👤</span> Profile
+                    </a>
+                    <a href="#" class="nav-item logout-btn" style="color: var(--danger);">
+                        <span class="nav-icon">🚪</span> Logout
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="user-avatar" id="sidebar-user-avatar">?</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebar-user-name">Loading...</div>
+                        <div class="user-role" id="sidebar-user-role">Administrator</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
+                    <div class="topbar-title">
+                        <h1>Admin Dashboard</h1>
+                        <p>System overview and management</p>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="topbar-btn logout-btn" aria-label="Logout">🚪</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Alert container -->
+                <div id="dashboard-alert"></div>
+
+                <!-- Admin Stats -->
+                <div class="admin-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon balance">👥</div>
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value" id="total-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon income">👤</div>
+                        <div class="stat-label">Regular Users</div>
+                        <div class="stat-value" id="regular-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon expense">🛡️</div>
+                        <div class="stat-label">Administrators</div>
+                        <div class="stat-value" id="total-admins">0</div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-section">
+                        <div class="section-title">
+                            <h2>Recent Registrations</h2>
+                        </div>
+                        <div class="users-table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-users-table">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted" style="padding: 32px;">
+                                            Loading users...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-title">
+                            <h2>System Status</h2>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 16px; padding: 8px 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="text-muted">Server Status</span>
+                                <span class="status-dot" id="system-status">Online</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="text-muted">Database</span>
+                                <span class="status-dot">MongoDB Atlas</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="text-muted">Server Time</span>
+                                <span style="font-size:0.85rem; color: var(--text-secondary);" id="server-time">Loading...</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="text-muted">API Version</span>
+                                <span style="font-size:0.85rem; color: var(--text-secondary);">v1.0.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>
