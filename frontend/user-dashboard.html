@@ -5,209 +5,740 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="FinPocket Dashboard — Your personal finance overview.">
     <title>Dashboard — FinPocket</title>
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+
+    <style>
+        /* =========================================================
+           FINPOCKET THEME SUPPORT
+           ========================================================= */
+
+        :root {
+            --fp-bg: #0f172a;
+            --fp-card: #111827;
+            --fp-card-soft: #1e293b;
+            --fp-text: #f8fafc;
+            --fp-muted: #94a3b8;
+            --fp-border: rgba(148, 163, 184, 0.16);
+            --fp-hover: rgba(255, 255, 255, 0.06);
+        }
+
+        html[data-theme="light"] {
+            --fp-bg: #f5f7fb;
+            --fp-card: #ffffff;
+            --fp-card-soft: #f8fafc;
+            --fp-text: #172033;
+            --fp-muted: #64748b;
+            --fp-border: rgba(15, 23, 42, 0.10);
+            --fp-hover: rgba(15, 23, 42, 0.05);
+        }
+
+        body {
+            background: var(--fp-bg);
+            color: var(--fp-text);
+            transition:
+                background-color 0.25s ease,
+                color 0.25s ease;
+        }
+
+        .theme-toggle-dashboard {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--fp-border);
+            border-radius: 12px;
+            background: var(--fp-card-soft);
+            color: var(--fp-text);
+            cursor: pointer;
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-dashboard:hover {
+            background: var(--fp-hover);
+            transform: translateY(-1px);
+        }
+
+        html[data-theme="light"] .sidebar,
+        html[data-theme="light"] .topbar,
+        html[data-theme="light"] .dashboard-section,
+        html[data-theme="light"] .stat-card {
+            border-color: var(--fp-border);
+        }
+
+        html[data-theme="light"] .topbar {
+            background: rgba(255, 255, 255, 0.92);
+        }
+
+        html[data-theme="light"] .sidebar {
+            background: #ffffff;
+        }
+
+        html[data-theme="light"] .dashboard-section,
+        html[data-theme="light"] .stat-card {
+            background: #ffffff;
+        }
+
+        html[data-theme="light"] .topbar-title h1,
+        html[data-theme="light"] .section-title h2,
+        html[data-theme="light"] .stat-value {
+            color: var(--fp-text);
+        }
+
+        html[data-theme="light"] .topbar-title p,
+        html[data-theme="light"] .stat-label {
+            color: var(--fp-muted);
+        }
+
+        .quick-action-link {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Language selector */
+        .language-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .language-icon {
+            font-size: 18px;
+        }
+
+        .language-selector {
+            border: 1px solid var(--fp-border);
+            border-radius: 10px;
+            background: var(--fp-card-soft);
+            color: var(--fp-text);
+            padding: 8px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .language-selector:focus {
+            border-color: var(--primary);
+        }
+
+        /* Bold headings */
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-weight: 700;
+        }
+
+        .topbar-title h1 {
+            font-weight: 700;
+        }
+
+        .section-title h2,
+        .dashboard-section h2,
+        .dashboard-section h3 {
+            font-weight: 700;
+        }
+    </style>
+
+    <!-- Apply saved theme before page is displayed -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem("finpocket-theme") || "dark";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+        })();
+    </script>
 </head>
+
 <body>
 
-    <div class="dashboard-layout">
-        <!-- Sidebar Overlay (mobile) -->
-        <div class="sidebar-overlay"></div>
+<div class="dashboard-layout">
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <a href="user-dashboard.html" class="sidebar-brand">
-                    <div class="logo-icon">💰</div>
-                    <span>FinPocket</span>
+    <!-- =========================================================
+         SIDEBAR OVERLAY
+         ========================================================= -->
+    <div class="sidebar-overlay"></div>
+
+
+    <!-- =========================================================
+         SIDEBAR
+         ========================================================= -->
+    <aside class="sidebar">
+
+        <div class="sidebar-header">
+            <a href="user-dashboard.html" class="sidebar-brand">
+                <div class="logo-icon">💰</div>
+                <span>FinPocket</span>
+            </a>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <!-- MAIN -->
+            <div class="nav-section">
+
+                <div class="nav-section-title">
+                    Main
+                </div>
+
+                <a href="user-dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    Dashboard
                 </a>
+
+                <a href="transactions.html" class="nav-item">
+                    <span class="nav-icon">💳</span>
+                    Transactions
+                </a>
+
+                <a href="categories.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    Categories
+                </a>
+
             </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Main</div>
-                    <a href="user-dashboard.html" class="nav-item active">
-                        <span class="nav-icon">📊</span> Dashboard
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">💳</span> Transactions
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">📁</span> Categories
-                    </a>
+
+            <!-- PLANNING -->
+            <div class="nav-section">
+
+                <div class="nav-section-title">
+                    Planning
                 </div>
 
-                <div class="nav-section">
-                    <div class="nav-section-title">Planning</div>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">🎯</span> Budgets
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">🏆</span> Saving Goals
-                    </a>
-                </div>
+                <a href="budgets.html" class="nav-item">
+                    <span class="nav-icon">💰</span>
+                    Budgets
+                </a>
 
-                <div class="nav-section">
-                    <div class="nav-section-title">Insights</div>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">📈</span> Reports
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">🔍</span> Analysis
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">💡</span> Recommendations
-                    </a>
-                </div>
+                <a href="saving-goals.html" class="nav-item">
+                    <span class="nav-icon">🎯</span>
+                    Saving Goals
+                </a>
 
-                <div class="nav-section">
-                    <div class="nav-section-title">Account</div>
-                    <a href="profile.html" class="nav-item">
-                        <span class="nav-icon">👤</span> Profile
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">🔔</span> Notifications
-                    </a>
-                    <a href="#" class="nav-item logout-btn" style="color: var(--danger);">
-                        <span class="nav-icon">🚪</span> Logout
-                    </a>
-                </div>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="user-avatar" id="sidebar-user-avatar">?</div>
-                    <div class="user-info">
-                        <div class="user-name" id="sidebar-user-name">Loading...</div>
-                        <div class="user-role" id="sidebar-user-role">Member</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <div class="topbar">
-                <div class="topbar-left">
-                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
-                    <div class="topbar-title">
-                        <h1 id="greeting-text">Good morning!</h1>
-                        <p>Here's your financial overview</p>
-                    </div>
-                </div>
-                <div class="topbar-right">
-                    <button class="topbar-btn" aria-label="Notifications">
-                        🔔
-                        <span class="notification-dot"></span>
-                    </button>
-                    <button class="topbar-btn logout-btn" aria-label="Logout">🚪</button>
-                </div>
             </div>
 
-            <!-- Dashboard Content -->
-            <div class="dashboard-content">
-                <!-- Alert container -->
-                <div id="dashboard-alert"></div>
 
-                <!-- Stats Grid -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon balance">💰</div>
-                        <div class="stat-label">Total Balance</div>
-                        <div class="stat-value" id="total-balance">₹0.00</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon income">📈</div>
-                        <div class="stat-label">Total Income</div>
-                        <div class="stat-value" id="total-income">₹0.00</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon expense">📉</div>
-                        <div class="stat-label">Total Expenses</div>
-                        <div class="stat-value" id="total-expenses">₹0.00</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon budget">🎯</div>
-                        <div class="stat-label">Budget Status</div>
-                        <div class="stat-value" id="current-budget">₹0.00</div>
-                    </div>
+            <!-- INSIGHTS -->
+            <div class="nav-section">
+
+                <div class="nav-section-title">
+                    Insights
                 </div>
 
-                <!-- Dashboard Grid -->
-                <div class="dashboard-grid">
-                    <!-- Recent Transactions -->
-                    <div class="dashboard-section">
-                        <div class="section-title">
-                            <h2>Recent Transactions</h2>
-                        </div>
-                        <div class="transactions-list">
-                            <div class="empty-state">
-                                <div class="empty-icon">📋</div>
-                                <h3>No Transactions Yet</h3>
-                                <p>Start by adding your first income or expense.</p>
+                <a href="reports.html" class="nav-item">
+                    <span class="nav-icon">📄</span>
+                    Reports
+                </a>
+
+                <a href="analysis.html" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    Analysis
+                </a>
+
+                <a href="recommendations.html" class="nav-item">
+                    <span class="nav-icon">💡</span>
+                    Recommendations
+                </a>
+
+            </div>
+
+
+            <!-- ACCOUNT -->
+            <div class="nav-section">
+
+                <div class="nav-section-title">
+                    Account
+                </div>
+
+                <a href="notifications.html" class="nav-item">
+                    <span class="nav-icon">🔔</span>
+                    Notifications
+
+                    <span
+                        id="sidebar-unread-badge"
+                        class="unread-badge"
+                        style="display:none;">
+                    </span>
+                </a>
+
+                <a href="profile.html" class="nav-item">
+                    <span class="nav-icon">👤</span>
+                    Profile
+                </a>
+
+                <a
+                    href="#"
+                    class="nav-item logout-btn"
+                    style="color: var(--danger);">
+
+                    <span class="nav-icon">🚪</span>
+                    Logout
+
+                </a>
+
+            </div>
+
+        </nav>
+
+
+        <!-- USER -->
+        <div class="sidebar-footer">
+
+            <div class="sidebar-user">
+
+                <div
+                    class="user-avatar"
+                    id="sidebar-user-avatar">
+                    ?
+                </div>
+
+                <div class="user-info">
+
+                    <div
+                        class="user-name"
+                        id="sidebar-user-name">
+                        Loading...
+                    </div>
+
+                    <div
+                        class="user-role"
+                        id="sidebar-user-role">
+                        Member
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+    <main class="main-content">
+
+
+        <!-- =====================================================
+             TOP BAR
+             ===================================================== -->
+        <div class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebar-toggle"
+                    aria-label="Toggle sidebar">
+                    ☰
+                </button>
+
+                <div class="topbar-title">
+
+                    <h1 id="greeting-text">
+                        Good morning!
+                    </h1>
+
+                    <p>
+                        Here's your financial overview
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="topbar-right">
+
+                <!-- Theme -->
+                <button
+                    class="theme-toggle-dashboard"
+                    id="theme-toggle"
+                    type="button"
+                    onclick="toggleTheme()"
+                    aria-label="Toggle theme"
+                    title="Toggle light/dark theme">
+                    🌙
+                </button>
+
+
+                <!-- Notifications -->
+                <button
+                    class="topbar-btn"
+                    aria-label="Notifications"
+                    onclick="window.location.href='notifications.html'">
+
+                    🔔
+
+                    <span
+                        id="topbar-notification-dot"
+                        class="notification-dot"
+                        style="display:none;">
+                    </span>
+
+                </button>
+
+
+        
+
+                <!-- Logout -->
+                <button
+                    class="topbar-btn logout-btn"
+                    aria-label="Logout">
+                    🚪
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             DASHBOARD CONTENT
+             ===================================================== -->
+        <div class="dashboard-content">
+
+
+            <!-- Alert container -->
+            <div id="dashboard-alert"></div>
+
+
+            <!-- =================================================
+                 STATS GRID
+                 ================================================= -->
+            <div class="stats-grid">
+
+
+                <!-- Total Balance -->
+                <div class="stat-card">
+
+                    <div class="stat-icon balance">
+                        💰
+                    </div>
+
+                    <div class="stat-label">
+                        Total Balance
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="total-balance">
+                        ₹0.00
+                    </div>
+
+                </div>
+
+
+                <!-- Total Income -->
+                <div class="stat-card">
+
+                    <div class="stat-icon income">
+                        📈
+                    </div>
+
+                    <div class="stat-label">
+                        Total Income
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="total-income">
+                        ₹0.00
+                    </div>
+
+                </div>
+
+
+                <!-- Total Expenses -->
+                <div class="stat-card">
+
+                    <div class="stat-icon expense">
+                        📉
+                    </div>
+
+                    <div class="stat-label">
+                        Total Expenses
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="total-expenses">
+                        ₹0.00
+                    </div>
+
+                </div>
+
+
+                <!-- Budget -->
+                <div class="stat-card">
+
+                    <div class="stat-icon budget">
+                        🎯
+                    </div>
+
+                    <div class="stat-label">
+                        Budget Status
+                    </div>
+
+                    <div
+                        class="stat-value"
+                        id="current-budget">
+                        ₹0.00
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 FIRST DASHBOARD GRID
+                 ================================================= -->
+            <div class="dashboard-grid">
+
+
+                <!-- ================= RECENT TRANSACTIONS ================= -->
+                <div class="dashboard-section">
+
+                    <div class="section-title">
+
+                        <h2>
+                            Recent Transactions
+                        </h2>
+
+                        <a
+                            href="transactions.html"
+                            class="quick-action-link">
+                            View All →
+                        </a>
+
+                    </div>
+
+
+                    <div class="transactions-list">
+
+                        <div class="empty-state">
+
+                            <div class="empty-icon">
+                                📋
                             </div>
+
+                            <h3>
+                                No Transactions Yet
+                            </h3>
+
+                            <p>
+                                Start by adding your first income or expense.
+                            </p>
+
                         </div>
+
                     </div>
 
-                    <!-- Quick Actions -->
-                    <div class="dashboard-section">
-                        <div class="section-title">
-                            <h2>Quick Actions</h2>
-                        </div>
-                        <div class="quick-actions">
-                            <button class="quick-action-btn" onclick="alert('Income module coming soon!')">
-                                <span class="action-icon">➕</span>
+                </div>
+
+
+                <!-- ================= QUICK ACTIONS ================= -->
+                <div class="dashboard-section">
+
+                    <div class="section-title">
+
+                        <h2>
+                            Quick Actions
+                        </h2>
+
+                    </div>
+
+
+                    <div class="quick-actions">
+
+                        <!-- Add Income -->
+                        <a
+                            href="transactions.html?action=income"
+                            class="quick-action-link">
+
+                            <button
+                                type="button"
+                                class="quick-action-btn">
+
+                                <span class="action-icon">
+                                    ➕
+                                </span>
+
                                 Add Income
+
                             </button>
-                            <button class="quick-action-btn" onclick="alert('Expense module coming soon!')">
-                                <span class="action-icon">➖</span>
+
+                        </a>
+
+
+                        <!-- Add Expense -->
+                        <a
+                            href="transactions.html?action=expense"
+                            class="quick-action-link">
+
+                            <button
+                                type="button"
+                                class="quick-action-btn">
+
+                                <span class="action-icon">
+                                    ➖
+                                </span>
+
                                 Add Expense
+
                             </button>
-                            <button class="quick-action-btn" onclick="alert('Budget module coming soon!')">
-                                <span class="action-icon">🎯</span>
-                                Set Budget
-                            </button>
-                            <button class="quick-action-btn" onclick="alert('Goals module coming soon!')">
-                                <span class="action-icon">🏆</span>
-                                Create Goal
-                            </button>
-                        </div>
+
+                        </a>
+
+
+                        <!-- Budget -->
+                        <button
+                            class="quick-action-btn"
+                            onclick="window.location.href='budgets.html'">
+
+                            <span class="action-icon">
+                                🎯
+                            </span>
+
+                            Set Budget
+
+                        </button>
+
+
+                        <!-- Saving Goal -->
+                        <button
+                            class="quick-action-btn"
+                            onclick="window.location.href='saving-goals.html'">
+
+                            <span class="action-icon">
+                                🏆
+                            </span>
+
+                            Create Goal
+
+                        </button>
+
                     </div>
+
                 </div>
 
-                <!-- Secondary Grid -->
-                <div class="dashboard-grid">
-                    <!-- Spending Overview -->
-                    <div class="dashboard-section">
-                        <div class="section-title">
-                            <h2>Spending Overview</h2>
-                        </div>
-                        <div class="empty-state">
-                            <div class="empty-icon">📊</div>
-                            <h3>No Spending Data</h3>
-                            <p>Charts will appear once you start recording transactions.</p>
-                        </div>
-                    </div>
-
-                    <!-- Saving Goals Progress -->
-                    <div class="dashboard-section">
-                        <div class="section-title">
-                            <h2>Saving Goals</h2>
-                        </div>
-                        <div class="empty-state">
-                            <div class="empty-icon">🏆</div>
-                            <h3>No Goals Set</h3>
-                            <p>Create your first saving goal to track progress.</p>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </main>
-    </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
+
+            <!-- =================================================
+                 SECOND DASHBOARD GRID
+                 ================================================= -->
+            <div class="dashboard-grid">
+
+
+                <!-- ================= SPENDING OVERVIEW ================= -->
+                <div class="dashboard-section">
+
+                    <div class="section-title">
+
+                        <h2>
+                            Spending Overview
+                        </h2>
+
+                    </div>
+
+
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            📊
+                        </div>
+
+                        <h3>
+                            No Spending Data
+                        </h3>
+
+                        <p>
+                            Charts will appear once you start recording
+                            transactions.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================= SAVING GOALS ================= -->
+                <div class="dashboard-section">
+
+                    <div class="section-title">
+
+                        <h2>
+                            Saving Goals
+                        </h2>
+
+                    </div>
+
+
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            🏆
+                        </div>
+
+                        <h3>
+                            No Goals Set
+                        </h3>
+
+                        <p>
+                            Create your first saving goal to track progress.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =============================================================
+     JAVASCRIPT
+     ============================================================= -->
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/dashboard.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const currentPage =
+        window.location.pathname.split("/").pop() || "user-dashboard.html";
+
+    document.querySelectorAll(".nav-item").forEach(function (link) {
+        const href = link.getAttribute("href");
+
+        if (!href || href === "#") return;
+
+        const linkPage = href.split("/").pop();
+
+        if (linkPage === currentPage) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+});
+</script>
 </body>
+
 </html>

@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Transactions — FinPocket</title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css">
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css">
+
+
+    <style>
+
+        /* ==================================================
+           PAGE
+           ================================================== */
+
+        .page-content {
+            padding: 32px;
+        }
+
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+
+        .page-header h1 {
+            margin: 0;
+        }
+
+
+        .page-header p {
+            margin: 6px 0 0;
+            color: var(--text-muted);
+        }
+
+
+        /* ==================================================
+           TRANSACTION BUTTONS
+           ================================================== */
+
+        .transaction-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+
+        .btn-income {
+            background: #16a34a;
+            color: white;
+        }
+
+
+        .btn-income:hover {
+            background: #15803d;
+        }
+
+
+        .btn-expense {
+            background: #dc2626;
+            color: white;
+        }
+
+
+        .btn-expense:hover {
+            background: #b91c1c;
+        }
+
+
+        /* ==================================================
+           FILTERS
+           ================================================== */
+
+        .filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+
+        .filters input,
+        .filters select {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+
+        /* ==================================================
+           TABLE
+           ================================================== */
+
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+
+        .transaction-table th {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+
+        .income {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+
+        .expense {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+
+        /* ==================================================
+           TYPE BADGES
+           ================================================== */
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 9px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+
+        .type-income {
+            background: rgba(34, 197, 94, 0.12);
+            color: #22c55e;
+        }
+
+
+        .type-expense {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+
+        /* ==================================================
+           ACTION BUTTONS
+           ================================================== */
+
+        .action-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 6px;
+            padding: 4px;
+        }
+
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+
+        /* ==================================================
+           EMPTY STATE
+           ================================================== */
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-muted);
+        }
+
+
+        .empty-state h3 {
+            margin: 10px 0 5px;
+            color: var(--text-primary);
+        }
+
+
+        /* ==================================================
+           MODAL
+           ================================================== */
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+
+        .modal.show {
+            display: flex;
+        }
+
+
+        .modal-card {
+            width: min(520px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+
+        .close-btn:hover {
+            color: var(--danger);
+        }
+
+
+        /* ==================================================
+           FORM
+           ================================================== */
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+
+        .form-group > label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 11px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+        }
+
+
+        .form-group textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+
+        /* ==================================================
+           CATEGORY OPTIONS
+           ================================================== */
+
+        .category-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+
+        .category-option {
+            position: relative;
+            cursor: pointer;
+        }
+
+
+        .category-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+
+        .category-card {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 46px;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            background: var(--bg-dark);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+
+        .category-card:hover {
+            border-color: var(--primary);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+
+        .category-option input:checked + .category-card {
+            border-color: var(--primary);
+            background: rgba(20, 184, 166, 0.12);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+
+
+        .category-icon {
+            font-size: 1.15rem;
+            width: 24px;
+            text-align: center;
+        }
+
+
+        .category-name {
+            font-size: 0.92rem;
+            font-weight: 500;
+        }
+
+
+        /* ==================================================
+           OTHER CATEGORY INPUT
+           ================================================== */
+
+        .other-category-input {
+            margin-top: 10px;
+        }
+
+
+        /* ==================================================
+           MODAL FOOTER
+           ================================================== */
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+
+        /* ==================================================
+           ALERT
+           ================================================== */
+
+        #transaction-alert {
+            margin-bottom: 15px;
+        }
+
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.12);
+            color: #22c55e;
+        }
+
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+
+        /* ==================================================
+           RESPONSIVE
+           ================================================== */
+
+        @media (max-width: 900px) {
+
+            .filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .page-content {
+                padding: 20px;
+            }
+
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+
+            .transaction-table {
+                min-width: 700px;
+            }
+
+
+            .table-wrapper {
+                overflow-x: auto;
+            }
+
+
+            .category-options {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 450px) {
+
+            .transaction-actions {
+                width: 100%;
+            }
+
+
+            .transaction-actions .btn {
+                flex: 1;
+            }
+
+
+            .modal-card {
+                padding: 18px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="dashboard-layout">
+
+
+    <!-- ==================================================
+         SIDEBAR OVERLAY
+         ================================================== -->
+
+    <div class="sidebar-overlay"></div>
+
+
+    <!-- ==================================================
+         SIDEBAR
+         ================================================== -->
+
+<aside class="sidebar">
+
+    <div class="sidebar-header">
+        <a href="user-dashboard.html" class="sidebar-brand">
+            <div class="logo-icon">💰</div>
+            <span>FinPocket</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <!-- MAIN -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Main
+            </div>
+
+            <a href="user-dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                Dashboard
+            </a>
+
+            <a
+    href="transactions.html"
+    class="nav-item "
+    id="transactions-nav">
+    <span class="nav-icon">💳</span>
+    Transactions
+</a>
+
+<a
+    href="categories.html"
+    class="nav-item"
+    id="categories-nav">
+    <span class="nav-icon">🏷️</span>
+    Categories
+</a>
+
+        </div>
+
+
+        <!-- PLANNING -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Planning
+            </div>
+
+            <a href="budgets.html" class="nav-item">
+                <span class="nav-icon">💰</span>
+                Budgets
+            </a>
+
+            <a href="saving-goals.html" class="nav-item">
+                <span class="nav-icon">🎯</span>
+                Saving Goals
+            </a>
+
+        </div>
+
+
+        <!-- INSIGHTS -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Insights
+            </div>
+
+            <a href="reports.html" class="nav-item">
+                <span class="nav-icon">📄</span>
+                Reports
+            </a>
+
+            <a href="analysis.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Analysis
+            </a>
+
+            <a href="recommendations.html" class="nav-item">
+                <span class="nav-icon">💡</span>
+                Recommendations
+            </a>
+
+        </div>
+
+
+        <!-- ACCOUNT -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Account
+            </div>
+
+            <a href="notifications.html" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                Notifications
+
+                <span
+                    id="sidebar-unread-badge"
+                    class="unread-badge"
+                    style="display:none;">
+                </span>
+            </a>
+
+            <a href="profile.html" class="nav-item">
+                <span class="nav-icon">👤</span>
+                Profile
+            </a>
+
+            <a
+                href="#"
+                class="nav-item logout-btn"
+                style="color: var(--danger);">
+
+                <span class="nav-icon">🚪</span>
+                Logout
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- USER -->
+    <div class="sidebar-footer">
+
+        <div class="sidebar-user">
+
+            <div
+                class="user-avatar"
+                id="sidebar-user-avatar">
+                ?
+            </div>
+
+            <div class="user-info">
+
+                <div
+                    class="user-name"
+                    id="sidebar-user-name">
+                    Loading...
+                </div>
+
+                <div
+                    class="user-role"
+                    id="sidebar-user-role">
+                    Member
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+    <!-- ==================================================
+         MAIN CONTENT
+         ================================================== -->
+
+    <main class="main-content">
+
+
+        <!-- ==================================================
+             TOP BAR
+             ================================================== -->
+
+        <div class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebar-toggle"
+                    aria-label="Toggle sidebar">
+                    ☰
+                </button>
+
+
+                <div class="topbar-title">
+
+                    <h1>Transactions</h1>
+
+                    <p>
+                        Record and manage your income and expenses
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             PAGE CONTENT
+             ================================================== -->
+
+        <div class="page-content">
+
+
+            <!-- ==================================================
+                 PAGE HEADER
+                 ================================================== -->
+
+            <div class="page-header">
+
+
+                <div>
+
+                    <h1>
+                        Transaction History
+                    </h1>
+
+                    <p>
+                        Track your money in one place.
+                    </p>
+
+                </div>
+
+
+                <div class="transaction-actions">
+
+
+                    <button
+                        type="button"
+                        class="btn btn-income"
+                        onclick="openTransactionModal('INCOME')">
+
+                        + Income
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-expense"
+                        onclick="openTransactionModal('EXPENSE')">
+
+                        − Expense
+
+                    </button>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 ALERT
+                 ================================================== -->
+
+            <div id="transaction-alert"></div>
+
+
+            <!-- ==================================================
+                 TRANSACTION SECTION
+                 ================================================== -->
+
+            <div class="dashboard-section">
+
+
+                <!-- ==================================================
+                     FILTERS
+                     ================================================== -->
+
+                <div class="filters">
+
+
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="Search description or category...">
+
+                        <
+
+                        <input type="number"
+                        id="amount-filter"
+                            placeholder="Search by amount (₹)"
+                            min="0"
+                            step="0.01">
+
+                    <select id="type-filter">
+
+                        <option value="">
+                            All Types
+                        </option>
+
+                        <option value="INCOME">
+                            Income
+                        </option>
+
+                        <option value="EXPENSE">
+                            Expense
+                        </option>
+
+                    </select>
+
+
+                    <input
+                        type="date"
+                        id="from-date">
+
+
+                    <input
+                        type="date"
+                        id="to-date">
+
+
+                </div>
+
+
+                <!-- ==================================================
+                     TRANSACTION TABLE
+                     ================================================== -->
+
+                <div class="table-wrapper">
+
+
+                    <table class="transaction-table">
+
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <th>Type</th>
+
+                                <th>Category</th>
+
+                                <th>Description</th>
+
+                                <th>Amount</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="transactions-table-body">
+
+
+                            <tr>
+
+                                <td colspan="6">
+
+                                    <div class="empty-state">
+
+                                        Loading transactions...
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+
+                        </tbody>
+
+
+                    </table>
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+</div>
+
+
+
+<!-- ======================================================
+     TRANSACTION MODAL
+     ====================================================== -->
+
+<div
+    class="modal"
+    id="transaction-modal">
+
+
+    <div class="modal-card">
+
+
+        <!-- ==================================================
+             MODAL HEADER
+             ================================================== -->
+
+        <div class="modal-header">
+
+
+            <h2 id="modal-title">
+                Add Transaction
+            </h2>
+
+
+            <button
+                type="button"
+                class="close-btn"
+                onclick="closeTransactionModal()">
+
+                ×
+
+            </button>
+
+
+        </div>
+
+
+
+        <!-- ==================================================
+             FORM
+             ================================================== -->
+
+        <form id="transaction-form">
+
+
+            <!-- Hidden ID used for editing -->
+
+            <input
+                type="hidden"
+                id="transaction-id"
+                value="">
+
+
+
+            <!-- ==================================================
+                 AMOUNT
+                 ================================================== -->
+
+            <div class="form-group">
+
+
+                <label for="transaction-amount">
+                    Amount (₹)
+                </label>
+
+
+                <input
+                    type="number"
+                    id="transaction-amount"
+                    min="0.01"
+                    step="0.01"
+                    required
+                    placeholder="Enter amount">
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 DATE
+                 ================================================== -->
+
+            <div class="form-group">
+
+
+                <label for="transaction-date">
+                    Date
+                </label>
+
+
+                <input
+                    type="date"
+                    id="transaction-date"
+                    required>
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 CATEGORY
+                 ================================================== -->
+
+            <div class="form-group">
+
+
+                <label>
+                    Category
+                </label>
+
+
+                <!-- ==========================================
+                     INCOME CATEGORIES
+                     ========================================== -->
+
+                <div
+                    id="income-categories"
+                    class="category-options">
+
+
+                    <!-- Salary -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="income-category"
+                            value="Salary">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                💼
+                            </span>
+
+                            <span class="category-name">
+                                Salary
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Gift -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="income-category"
+                            value="Gift">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🎁
+                            </span>
+
+                            <span class="category-name">
+                                Gift
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Refund -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="income-category"
+                            value="Refund">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                ↩️
+                            </span>
+
+                            <span class="category-name">
+                                Refund
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Other -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="income-category"
+                            value="Other">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                📝
+                            </span>
+
+                            <span class="category-name">
+                                Other
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                </div>
+
+
+
+                <!-- ==========================================
+                     OTHER INCOME
+                     ========================================== -->
+
+                <input
+                    type="text"
+                    id="other-income-category"
+                    class="other-category-input"
+                    placeholder="Enter income category"
+                    style="display: none;">
+
+
+
+                <!-- ==========================================
+                     EXPENSE CATEGORIES
+                     ========================================== -->
+
+                <div
+                    id="expense-categories"
+                    class="category-options"
+                    style="display: none;">
+
+
+                    <!-- Food -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Food">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🍔
+                            </span>
+
+                            <span class="category-name">
+                                Food
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Travel -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Travel">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🚗
+                            </span>
+
+                            <span class="category-name">
+                                Travel
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Education -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Education">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🎓
+                            </span>
+
+                            <span class="category-name">
+                                Education
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Shopping -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Shopping">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🛍️
+                            </span>
+
+                            <span class="category-name">
+                                Shopping
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Bills -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Bills">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🧾
+                            </span>
+
+                            <span class="category-name">
+                                Bills
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Entertainment -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Entertainment">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🎬
+                            </span>
+
+                            <span class="category-name">
+                                Entertainment
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Healthcare -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Healthcare">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                🏥
+                            </span>
+
+                            <span class="category-name">
+                                Healthcare
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                    <!-- Other -->
+
+                    <label class="category-option">
+
+                        <input
+                            type="radio"
+                            name="expense-category"
+                            value="Other">
+
+                        <span class="category-card">
+
+                            <span class="category-icon">
+                                📝
+                            </span>
+
+                            <span class="category-name">
+                                Other
+                            </span>
+
+                        </span>
+
+                    </label>
+
+
+                </div>
+
+
+
+                <!-- ==========================================
+                     OTHER EXPENSE
+                     ========================================== -->
+
+                <input
+                    type="text"
+                    id="other-expense-category"
+                    class="other-category-input"
+                    placeholder="Enter expense category"
+                    style="display: none;">
+
+
+            </div>
+
+
+
+            <!-- ==================================================
+                 DESCRIPTION
+                 ================================================== -->
+
+            <div class="form-group">
+
+
+                <label for="transaction-description">
+                    Description
+                </label>
+
+
+                <textarea
+                    id="transaction-description"
+                    placeholder="Enter transaction details"></textarea>
+
+
+            </div>
+            
+            <!-- ==================================================
+     TRANSACTION REMINDER
+     ================================================== -->
+
+<!-- TRANSACTION REMINDER -->
+<div class="form-group reminder-section">
+
+    <label class="reminder-checkbox">
+        <input
+            type="checkbox"
+            id="reminder-enabled">
+
+        <span>🔔 Set Transaction Reminder</span>
+    </label>
+
+    <div
+        id="reminder-fields"
+        style="display: none; margin-top: 12px;">
+
+        <label for="reminder-at">
+            Reminder Date & Time
+        </label>
+
+        <input
+            type="datetime-local"
+            id="reminder-at">
+
+        <small>
+            You will receive an in-app notification and email
+            when the reminder time is reached.
+        </small>
+
+    </div>
+</div>
+
+<!-- RECURRING TRANSACTION -->
+<div class="form-group" id="recurrence-section">
+
+    <label>
+        <input
+            type="checkbox"
+            id="recurring-active">
+
+        Repeat this transaction
+    </label>
+
+    <div id="recurrence-fields" style="display: none;">
+
+        <label for="recurrence-frequency">
+            Repeat frequency
+        </label>
+
+        <select id="recurrence-frequency">
+            <option value="">Select frequency</option>
+            <option value="DAILY">Daily</option>
+            <option value="WEEKLY">Weekly</option>
+            <option value="MONTHLY">Monthly</option>
+            <option value="YEARLY">Yearly</option>
+        </select>
+
+        <label for="recurrence-end-date">
+            End date (optional)
+        </label>
+
+        <input
+            type="date"
+            id="recurrence-end-date">
+
+        <small>
+            Leave the end date empty to repeat until you stop it.
+        </small>
+
+    </div>
+</div>
+
+
+
+            <!-- ==================================================
+                 MODAL FOOTER
+                 ================================================== -->
+
+            <div class="modal-footer">
+
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick="closeTransactionModal()">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="save-transaction-btn">
+
+                    Save Transaction
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+
+</div>
+
+
+
+<!-- ======================================================
+     JAVASCRIPT
+     ====================================================== -->
+
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/transactions.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const currentPage =
+        window.location.pathname.split("/").pop() || "user-dashboard.html";
+
+    document.querySelectorAll(".nav-item").forEach(function (link) {
+        const href = link.getAttribute("href");
+
+        if (!href || href === "#") return;
+
+        const linkPage = href.split("/").pop();
+
+        if (linkPage === currentPage) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+});
+</script>
+</body>
+
+</html>

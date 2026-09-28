@@ -188,7 +188,7 @@ On initial startup, the backend automatically seeds a default administrator acco
 
 | Role | Email | Password | Dashboard URL |
 |---|---|---|---|
-| **Administrator** | `admin@finpocket.com` | `Admin@123` | `http://localhost:5500/admin-dashboard.html` |
+
 | **Regular User** | *Register via UI* | *Chosen during signup* | `http://localhost:5500/user-dashboard.html` |
 
 ---

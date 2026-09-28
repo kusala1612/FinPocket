@@ -26,7 +26,7 @@
             <nav class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Administration</div>
-                    <a href="admin-dashboard.html" class="nav-item active">
+                    <a href="admin-dashboard.html" class="nav-item">
                         <span class="nav-icon">📊</span> Dashboard
                     </a>
                     <a href="#" class="nav-item coming-soon">
@@ -164,5 +164,25 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin-dashboard.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const currentPage =
+        window.location.pathname.split("/").pop() || "user-dashboard.html";
+
+    document.querySelectorAll(".nav-item").forEach(function (link) {
+        const href = link.getAttribute("href");
+
+        if (!href || href === "#") return;
+
+        const linkPage = href.split("/").pop();
+
+        if (linkPage === currentPage) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+});
+</script>
 </body>
 </html>

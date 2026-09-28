@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="FinPocket Categories - Organize your income and expenses.">
+
+    <title>Categories — FinPocket</title>
+
+    <!-- Common FinPocket styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <style>
+
+        /* =========================================================
+           CATEGORIES PAGE
+           ========================================================= */
+
+        .categories-content {
+            padding: 28px 30px 40px;
+        }
+
+        /* ---------------------------------------------------------
+           PAGE HEADER
+           --------------------------------------------------------- */
+
+        .categories-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .categories-title h1 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 30px;
+            font-weight: 700;
+        }
+
+        .categories-title p {
+            margin: 6px 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .add-category-btn {
+            border: none;
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .add-category-btn:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+
+        /* ---------------------------------------------------------
+           ALERT
+           --------------------------------------------------------- */
+
+        #category-alert {
+            display: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .category-alert.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.12);
+            color: #22c55e;
+        }
+
+        .category-alert.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+        }
+
+
+        /* ---------------------------------------------------------
+           CATEGORY SECTION
+           --------------------------------------------------------- */
+
+        .category-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .category-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .category-section-title {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .category-section-title h2 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .category-section-title .section-icon {
+            font-size: 22px;
+        }
+
+        .category-type-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+
+        /* ---------------------------------------------------------
+           CATEGORY GRID
+           --------------------------------------------------------- */
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+
+        /* ---------------------------------------------------------
+           CATEGORY CARD
+           --------------------------------------------------------- */
+
+        .category-card {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            padding: 12px 14px;
+
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+
+            transition: 0.2s ease;
+        }
+
+        .category-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .category-icon {
+            width: 46px;
+            height: 46px;
+            flex: 0 0 46px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.12);
+
+            font-size: 23px;
+        }
+
+        .category-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .category-info h3 {
+            margin: 0 0 4px;
+
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 700;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .category-info span {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+
+        /* ---------------------------------------------------------
+           CATEGORY ACTIONS
+           --------------------------------------------------------- */
+
+        .category-actions {
+            display: flex;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+
+        .category-action {
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: none;
+            border-radius: 7px;
+
+            background: var(--border-color);
+            color: var(--text-primary);
+
+            cursor: pointer;
+            font-size: 15px;
+
+            transition: 0.2s ease;
+        }
+
+        .category-action:hover:not(:disabled) {
+            background: var(--primary);
+        }
+
+        .category-action.delete:hover:not(:disabled) {
+            background: var(--danger);
+        }
+
+        .category-action:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+
+        /* ---------------------------------------------------------
+           MODAL
+           --------------------------------------------------------- */
+
+        .category-modal {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            z-index: 1000;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background: rgba(0, 0, 0, 0.60);
+        }
+
+        .category-modal.active {
+            display: flex;
+        }
+
+        .category-modal-box {
+            width: 100%;
+            max-width: 460px;
+
+            background: var(--bg-card);
+
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+
+            padding: 25px;
+
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.30);
+        }
+
+
+        /* ---------------------------------------------------------
+           MODAL HEADER
+           --------------------------------------------------------- */
+
+        .category-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 22px;
+        }
+
+        .category-modal-header h2 {
+            margin: 0;
+
+            color: var(--text-primary);
+
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .category-modal-close {
+            border: none;
+            background: transparent;
+
+            color: var(--text-secondary);
+
+            font-size: 25px;
+            line-height: 1;
+
+            cursor: pointer;
+        }
+
+        .category-modal-close:hover {
+            color: var(--text-primary);
+        }
+
+
+        /* ---------------------------------------------------------
+           FORM
+           --------------------------------------------------------- */
+
+        .category-form-group {
+            margin-bottom: 18px;
+        }
+
+        .category-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: var(--text-primary);
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .category-form-group input,
+        .category-form-group select {
+            width: 100%;
+            box-sizing: border-box;
+
+            padding: 11px 12px;
+
+            background: var(--bg-dark);
+
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+
+            color: var(--text-primary);
+
+            font-size: 14px;
+
+            outline: none;
+        }
+
+        .category-form-group input:focus,
+        .category-form-group select:focus {
+            border-color: var(--primary);
+        }
+
+
+        /* ---------------------------------------------------------
+           MODAL ALERT
+           --------------------------------------------------------- */
+
+        #modal-category-alert {
+            display: none;
+
+            padding: 10px 13px;
+
+            border-radius: 8px;
+
+            margin-bottom: 16px;
+
+            font-size: 13px;
+        }
+
+
+        /* ---------------------------------------------------------
+           MODAL BUTTONS
+           --------------------------------------------------------- */
+
+        .category-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            margin-top: 22px;
+        }
+
+        .category-cancel-btn {
+            padding: 11px 18px;
+
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+
+            background: transparent;
+
+            color: var(--text-primary);
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .category-cancel-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .category-save-btn {
+            padding: 11px 20px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: var(--primary);
+
+            color: white;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .category-save-btn:hover {
+            opacity: 0.92;
+        }
+
+
+        /* ---------------------------------------------------------
+           RESPONSIVE
+           --------------------------------------------------------- */
+
+        @media (max-width: 800px) {
+
+            .categories-content {
+                padding: 22px;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 600px) {
+
+            .categories-page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .add-category-btn {
+                width: 100%;
+            }
+
+            .category-section {
+                padding: 17px;
+            }
+
+            .category-card {
+                padding: 11px;
+            }
+
+        }
+
+
+        @media (max-width: 450px) {
+
+            .category-card {
+                gap: 9px;
+            }
+
+            .category-icon {
+                width: 40px;
+                height: 40px;
+                flex-basis: 40px;
+                font-size: 20px;
+            }
+
+            .category-action {
+                width: 30px;
+                height: 30px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="dashboard-layout">
+
+    <!-- =========================================================
+         MOBILE SIDEBAR OVERLAY
+         ========================================================= -->
+
+    <div class="sidebar-overlay"></div>
+
+
+    <!-- =========================================================
+         SIDEBAR
+         ========================================================= -->
+         <aside class="sidebar">
+
+    <div class="sidebar-header">
+        <a href="user-dashboard.html" class="sidebar-brand">
+            <div class="logo-icon">💰</div>
+            <span>FinPocket</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <!-- MAIN -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Main
+            </div>
+
+            <a href="user-dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                Dashboard
+            </a>
+
+            <a href="transactions.html" class="nav-item">
+                <span class="nav-icon">💳</span>
+                Transactions
+            </a>
+
+            <a href="categories.html" class="nav-item active">
+                <span class="nav-icon">🏷️</span>
+                Categories
+            </a>
+
+        </div>
+
+
+        <!-- PLANNING -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Planning
+            </div>
+
+            <a href="budgets.html" class="nav-item">
+                <span class="nav-icon">💰</span>
+                Budgets
+            </a>
+
+            <a href="saving-goals.html" class="nav-item">
+                <span class="nav-icon">🎯</span>
+                Saving Goals
+            </a>
+
+        </div>
+
+
+        <!-- INSIGHTS -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Insights
+            </div>
+
+            <a href="reports.html" class="nav-item">
+                <span class="nav-icon">📄</span>
+                Reports
+            </a>
+
+            <a href="analysis.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Analysis
+            </a>
+
+            <a href="recommendations.html" class="nav-item">
+                <span class="nav-icon">💡</span>
+                Recommendations
+            </a>
+
+        </div>
+
+
+        <!-- ACCOUNT -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Account
+            </div>
+
+            <a href="notifications.html" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                Notifications
+
+                <span
+                    id="sidebar-unread-badge"
+                    class="unread-badge"
+                    style="display:none;">
+                </span>
+            </a>
+
+            <a href="profile.html" class="nav-item">
+                <span class="nav-icon">👤</span>
+                Profile
+            </a>
+
+            <a
+                href="#"
+                class="nav-item logout-btn"
+                style="color: var(--danger);">
+
+                <span class="nav-icon">🚪</span>
+                Logout
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- USER -->
+    <div class="sidebar-footer">
+
+        <div class="sidebar-user">
+
+            <div
+                class="user-avatar"
+                id="sidebar-user-avatar">
+                ?
+            </div>
+
+            <div class="user-info">
+
+                <div
+                    class="user-name"
+                    id="sidebar-user-name">
+                    Loading...
+                </div>
+
+                <div
+                    class="user-role"
+                    id="sidebar-user-role">
+                    Member
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+
+    <main class="main-content">
+
+
+        <!-- ================= TOP BAR ================= -->
+
+        <div class="topbar">
+
+            <div class="topbar-left">
+
+                <button
+                    class="sidebar-toggle"
+                    id="sidebar-toggle"
+                    aria-label="Toggle sidebar">
+
+                    ☰
+
+                </button>
+
+
+                <div class="topbar-title">
+
+                    <h1>
+                        Categories
+                    </h1>
+
+                    <p>
+                        Organize your income and expenses
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CATEGORY PAGE CONTENT
+             ===================================================== -->
+
+        <div class="categories-content">
+
+
+            <!-- PAGE HEADER -->
+
+            <div class="categories-page-header">
+
+                <div class="categories-title">
+
+                    <h1>
+                        Categories
+                    </h1>
+
+                    <p>
+                        Organize your income and expenses with simple categories.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="add-category-btn"
+                    onclick="openCategoryModal('EXPENSE')">
+
+                    + Add Category
+
+                </button>
+
+            </div>
+
+
+            <!-- ALERT -->
+
+            <div id="category-alert"></div>
+
+
+            <!-- =================================================
+                 EXPENSE CATEGORIES
+                 ================================================= -->
+
+            <section class="category-section">
+
+
+                <div class="category-section-header">
+
+                    <div class="category-section-title">
+
+                        <span class="section-icon">
+                            💸
+                        </span>
+
+                        <h2>
+                            Expense Categories
+                        </h2>
+
+                    </div>
+
+
+                    <span class="category-type-label">
+                        Expense
+                    </span>
+
+                </div>
+
+
+                <!-- IMPORTANT:
+                     categories.js fills this container -->
+
+                <div
+                    id="expense-categories-list"
+                    class="category-grid">
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INCOME CATEGORIES
+                 ================================================= -->
+
+            <section class="category-section">
+
+
+                <div class="category-section-header">
+
+                    <div class="category-section-title">
+
+                        <span class="section-icon">
+                            💰
+                        </span>
+
+                        <h2>
+                            Income Categories
+                        </h2>
+
+                    </div>
+
+
+                    <span class="category-type-label">
+                        Income
+                    </span>
+
+                </div>
+
+
+                <!-- IMPORTANT:
+                     categories.js fills this container -->
+
+                <div
+                    id="income-categories-list"
+                    class="category-grid">
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =============================================================
+     CATEGORY MODAL
+     ============================================================= -->
+
+<div
+    id="category-modal"
+    class="category-modal">
+
+
+    <div class="category-modal-box">
+
+
+        <!-- MODAL HEADER -->
+
+        <div class="category-modal-header">
+
+            <h2 id="category-modal-title">
+                Add Expense Category
+            </h2>
+
+
+            <button
+                type="button"
+                class="category-modal-close"
+                onclick="closeCategoryModal()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <!-- MODAL ALERT -->
+
+        <div id="modal-category-alert"></div>
+
+
+        <!-- FORM -->
+
+        <form
+            id="category-form"
+            onsubmit="saveCategory(event)">
+
+
+            <!-- CATEGORY NAME -->
+
+            <div class="category-form-group">
+
+                <label for="category-name">
+                    Category Name
+                </label>
+
+
+                <input
+                    type="text"
+                    id="category-name"
+                    placeholder="e.g. Food"
+                    maxlength="50"
+                    required>
+
+            </div>
+
+
+            <!-- CATEGORY ICON -->
+
+            <div class="category-form-group">
+
+                <label for="category-icon">
+                    Category Icon
+                </label>
+
+
+                <input
+                    type="text"
+                    id="category-icon"
+                    placeholder="e.g. 🍔"
+                    maxlength="10"
+                    required>
+
+            </div>
+
+
+            <!-- CATEGORY TYPE -->
+
+            <div class="category-form-group">
+
+                <label for="category-type">
+                    Category Type
+                </label>
+
+
+                <select id="category-type">
+
+                    <option value="EXPENSE">
+                        Expense
+                    </option>
+
+                    <option value="INCOME">
+                        Income
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- MODAL BUTTONS -->
+
+            <div class="category-modal-actions">
+
+
+                <button
+                    type="button"
+                    class="category-cancel-btn"
+                    onclick="closeCategoryModal()">
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="category-save-btn">
+
+                    Save Category
+
+                </button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =============================================================
+     JAVASCRIPT
+     ============================================================= -->
+
+<script src="js/auth.js"></script>
+
+<script src="js/api.js"></script>
+
+<script src="js/theme.js"></script>
+
+<script src="js/categories.js"></script>
+
+
+</body>
+</html>

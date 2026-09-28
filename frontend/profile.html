@@ -1,148 +1,1124 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="FinPocket Profile — Manage your account settings.">
+
+    <meta
+        name="description"
+        content="FinPocket Profile — Manage your account settings."
+    >
+
     <title>Profile — FinPocket</title>
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+
+
+    <!-- =====================================================
+         APPLY SAVED THEME BEFORE PAGE LOAD
+         ===================================================== -->
+
+    <script>
+        (function () {
+
+            const savedTheme =
+                localStorage.getItem("finpocket-theme") || "dark";
+
+            document.documentElement.setAttribute(
+                "data-theme",
+                savedTheme
+            );
+
+        })();
+    </script>
+
+
+    <!-- =====================================================
+         THEME OVERRIDES
+         ===================================================== -->
+
+    <style>
+
+        /* =====================================================
+           DARK THEME
+           ===================================================== */
+
+        :root {
+
+            --theme-bg: #0f172a;
+            --theme-surface: #111827;
+            --theme-surface-2: #1f2937;
+            --theme-border: #374151;
+
+            --theme-text: #f9fafb;
+            --theme-secondary: #9ca3af;
+
+            --theme-primary: #2563eb;
+            --theme-primary-hover: #1d4ed8;
+
+        }
+
+
+        /* =====================================================
+           LIGHT THEME
+           ===================================================== */
+
+        html[data-theme="light"] {
+
+            --theme-bg: #f5f7fb;
+            --theme-surface: #ffffff;
+            --theme-surface-2: #f1f5f9;
+            --theme-border: #dbe2ea;
+
+            --theme-text: #111827;
+            --theme-secondary: #64748b;
+
+            --theme-primary: #2563eb;
+            --theme-primary-hover: #1d4ed8;
+
+        }
+
+
+        /* =====================================================
+           PAGE THEME
+           ===================================================== */
+
+        body {
+
+            background:
+                var(--theme-bg) !important;
+
+            color:
+                var(--theme-text) !important;
+
+            transition:
+                background 0.25s ease,
+                color 0.25s ease;
+        }
+
+
+        .main-content {
+
+            background:
+                var(--theme-bg);
+        }
+
+
+        .topbar {
+
+            background:
+                var(--theme-bg) !important;
+
+            color:
+                var(--theme-text) !important;
+        }
+
+
+        .topbar-title h1 {
+
+            color:
+                var(--theme-text) !important;
+        }
+
+
+        .topbar-title p {
+
+            color:
+                var(--theme-secondary) !important;
+        }
+
+
+        /* =====================================================
+           PROFILE CARD
+           ===================================================== */
+
+        .profile-card {
+
+            background:
+                var(--theme-surface) !important;
+
+            border-color:
+                var(--theme-border) !important;
+
+            transition:
+                background 0.25s ease,
+                border-color 0.25s ease;
+        }
+
+
+        .profile-info h2 {
+
+            color:
+                var(--theme-text) !important;
+        }
+
+
+        .profile-info p {
+
+            color:
+                var(--theme-secondary) !important;
+        }
+
+
+        .form-group label {
+
+            color:
+                var(--theme-text) !important;
+        }
+
+
+        .form-control {
+
+            background:
+                var(--theme-surface-2) !important;
+
+            color:
+                var(--theme-text) !important;
+
+            border-color:
+                var(--theme-border) !important;
+        }
+
+
+        .form-control::placeholder {
+
+            color:
+                var(--theme-secondary) !important;
+        }
+
+
+        /* =====================================================
+           APPEARANCE CARD
+           ===================================================== */
+
+        .appearance-card {
+
+            margin-top:
+                25px;
+
+            padding:
+                22px;
+
+            background:
+                var(--theme-surface);
+
+            border:
+                1px solid var(--theme-border);
+
+            border-radius:
+                12px;
+        }
+
+
+        .appearance-header {
+
+            margin-bottom:
+                18px;
+        }
+
+
+        .appearance-title {
+
+            font-size:
+                18px;
+
+            font-weight:
+                600;
+
+            color:
+                var(--theme-text);
+
+            margin-bottom:
+                5px;
+        }
+
+
+        .appearance-description {
+
+            font-size:
+                13px;
+
+            color:
+                var(--theme-secondary);
+        }
+
+
+        /* =====================================================
+           THEME OPTIONS
+           ===================================================== */
+
+        .theme-options {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap:
+                15px;
+        }
+
+
+        .theme-option {
+
+            position:
+                relative;
+
+            cursor:
+                pointer;
+        }
+
+
+        .theme-option input {
+
+            position:
+                absolute;
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+        }
+
+
+        .theme-option-content {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                14px;
+
+            padding:
+                16px;
+
+            border:
+                2px solid var(--theme-border);
+
+            border-radius:
+                10px;
+
+            background:
+                var(--theme-surface-2);
+
+            transition:
+                border-color 0.2s ease,
+                background 0.2s ease,
+                transform 0.2s ease;
+        }
+
+
+        .theme-option-content:hover {
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .theme-option input:checked
+        + .theme-option-content {
+
+            border-color:
+                var(--theme-primary);
+
+            background:
+                rgba(37, 99, 235, 0.10);
+        }
+
+
+        .theme-icon {
+
+            width:
+                42px;
+
+            height:
+                42px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            border-radius:
+                9px;
+
+            background:
+                var(--theme-surface);
+
+            font-size:
+                22px;
+        }
+
+
+        .theme-text {
+
+            flex:
+                1;
+        }
+
+
+        .theme-name {
+
+            font-size:
+                14px;
+
+            font-weight:
+                600;
+
+            color:
+                var(--theme-text);
+
+            margin-bottom:
+                4px;
+        }
+
+
+        .theme-description {
+
+            font-size:
+                12px;
+
+            color:
+                var(--theme-secondary);
+        }
+
+
+        .theme-check {
+
+            width:
+                20px;
+
+            height:
+                20px;
+
+            border:
+                2px solid var(--theme-border);
+
+            border-radius:
+                50%;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            color:
+                white;
+
+            font-size:
+                11px;
+        }
+
+
+        .theme-option input:checked
+        + .theme-option-content
+        .theme-check {
+
+            background:
+                var(--theme-primary);
+
+            border-color:
+                var(--theme-primary);
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 650px) {
+
+            .theme-options {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+    </style>
+
 </head>
+
+
 <body>
 
+
     <div class="dashboard-layout">
-        <!-- Sidebar Overlay (mobile) -->
+
+
+        <!-- =================================================
+             SIDEBAR OVERLAY
+             ================================================= -->
+
         <div class="sidebar-overlay"></div>
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <a href="user-dashboard.html" class="sidebar-brand">
-                    <div class="logo-icon">💰</div>
-                    <span>FinPocket</span>
-                </a>
-            </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Main</div>
-                    <a href="user-dashboard.html" class="nav-item" id="nav-dashboard-link">
-                        <span class="nav-icon">📊</span> Dashboard
-                    </a>
-                    <a href="#" class="nav-item coming-soon">
-                        <span class="nav-icon">💳</span> Transactions
-                    </a>
-                </div>
+        <!-- =================================================
+             SIDEBAR
+             ================================================= -->
 
-                <div class="nav-section">
-                    <div class="nav-section-title">Account</div>
-                    <a href="profile.html" class="nav-item active">
-                        <span class="nav-icon">👤</span> Profile
-                    </a>
-                    <a href="#" class="nav-item logout-btn" style="color: var(--danger);">
-                        <span class="nav-icon">🚪</span> Logout
-                    </a>
-                </div>
-            </nav>
+<aside class="sidebar">
 
-            <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <div class="user-avatar" id="sidebar-user-avatar">?</div>
-                    <div class="user-info">
-                        <div class="user-name" id="sidebar-user-name">Loading...</div>
-                        <div class="user-role" id="sidebar-user-role">Member</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <div class="topbar">
-                <div class="topbar-left">
-                    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">☰</button>
-                    <div class="topbar-title">
-                        <h1>My Profile</h1>
-                        <p>Manage your account information</p>
-                    </div>
-                </div>
-                <div class="topbar-right">
-                    <button class="topbar-btn logout-btn" aria-label="Logout">🚪</button>
-                </div>
-            </div>
-
-            <!-- Profile Content -->
-            <div class="dashboard-content">
-                <!-- Alert container -->
-                <div id="profile-alert"></div>
-
-                <div class="dashboard-section profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar" id="profile-avatar">?</div>
-                        <div class="profile-info">
-                            <h2 id="profile-name-display">Loading...</h2>
-                            <p>Manage your personal information below</p>
-                        </div>
-                    </div>
-
-                    <form id="profile-form" class="profile-form" novalidate>
-                        <div class="form-group">
-                            <label for="profile-fullname">Full Name</label>
-                            <input type="text" id="profile-fullname" class="form-control"
-                                   placeholder="Your full name">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profile-email">Email Address</label>
-                            <input type="email" id="profile-email" class="form-control" disabled
-                                   placeholder="Your email">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profile-phone">Phone Number</label>
-                            <input type="tel" id="profile-phone" class="form-control"
-                                   placeholder="Your phone number">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profile-role">Role</label>
-                            <input type="text" id="profile-role" class="form-control" disabled
-                                   placeholder="Role">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="profile-created">Member Since</label>
-                            <input type="text" id="profile-created" class="form-control" disabled
-                                   placeholder="Account creation date">
-                        </div>
-
-                        <div class="profile-actions">
-                            <button type="submit" id="save-profile-btn" class="btn btn-primary">
-                                Save Changes
-                            </button>
-                            <button type="button" class="btn btn-ghost" onclick="loadProfile()">
-                                Reset
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
+    <div class="sidebar-header">
+        <a href="user-dashboard.html" class="sidebar-brand">
+            <div class="logo-icon">💰</div>
+            <span>FinPocket</span>
+        </a>
     </div>
 
+    <nav class="sidebar-nav">
+
+        <!-- MAIN -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Main
+            </div>
+
+            <a href="user-dashboard.html" class="nav-item">
+                <span class="nav-icon">🏠</span>
+                Dashboard
+            </a>
+
+            <a href="transactions.html" class="nav-item">
+                <span class="nav-icon">💳</span>
+                Transactions
+            </a>
+
+            <a href="categories.html" class="nav-item">
+                <span class="nav-icon">🏷️</span>
+                Categories
+            </a>
+
+        </div>
+
+
+        <!-- PLANNING -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Planning
+            </div>
+
+            <a href="budgets.html" class="nav-item">
+                <span class="nav-icon">💰</span>
+                Budgets
+            </a>
+
+            <a href="saving-goals.html" class="nav-item">
+                <span class="nav-icon">🎯</span>
+                Saving Goals
+            </a>
+
+        </div>
+
+
+        <!-- INSIGHTS -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Insights
+            </div>
+
+            <a href="reports.html" class="nav-item">
+                <span class="nav-icon">📄</span>
+                Reports
+            </a>
+
+            <a href="analysis.html" class="nav-item">
+                <span class="nav-icon">📊</span>
+                Analysis
+            </a>
+
+            <a href="recommendations.html" class="nav-item">
+                <span class="nav-icon">💡</span>
+                Recommendations
+            </a>
+
+        </div>
+
+
+        <!-- ACCOUNT -->
+        <div class="nav-section">
+
+            <div class="nav-section-title">
+                Account
+            </div>
+
+            <a href="notifications.html" class="nav-item">
+                <span class="nav-icon">🔔</span>
+                Notifications
+
+                <span
+                    id="sidebar-unread-badge"
+                    class="unread-badge"
+                    style="display:none;">
+                </span>
+            </a>
+
+            <a href="profile.html" class="nav-item">
+                <span class="nav-icon">👤</span>
+                Profile
+            </a>
+
+            <a
+                href="#"
+                class="nav-item logout-btn"
+                style="color: var(--danger);">
+
+                <span class="nav-icon">🚪</span>
+                Logout
+
+            </a>
+
+        </div>
+
+    </nav>
+
+
+    <!-- USER -->
+    <div class="sidebar-footer">
+
+        <div class="sidebar-user">
+
+            <div
+                class="user-avatar"
+                id="sidebar-user-avatar">
+                ?
+            </div>
+
+            <div class="user-info">
+
+                <div
+                    class="user-name"
+                    id="sidebar-user-name">
+                    Loading...
+                </div>
+
+                <div
+                    class="user-role"
+                    id="sidebar-user-role">
+                    Member
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</aside>
+
+        <!-- =================================================
+             MAIN CONTENT
+             ================================================= -->
+
+        <main class="main-content">
+
+
+            <!-- TOP BAR -->
+
+            <div class="topbar">
+
+
+                <div class="topbar-left">
+
+
+                    <button
+                        class="sidebar-toggle"
+                        id="sidebar-toggle"
+                        aria-label="Toggle sidebar">
+
+                        ☰
+
+                    </button>
+
+
+                    <div class="topbar-title">
+
+                        <h1>
+                            My Profile
+                        </h1>
+
+                        <p>
+                            Manage your account information
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="topbar-right">
+
+                    <button
+                        class="topbar-btn logout-btn"
+                        aria-label="Logout">
+
+                        🚪
+
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =================================================
+                 PROFILE CONTENT
+                 ================================================= -->
+
+            <div class="dashboard-content">
+
+
+                <!-- ALERT -->
+
+                <div id="profile-alert"></div>
+
+
+                <!-- =================================================
+                     PROFILE INFORMATION
+                     ================================================= -->
+
+                <div class="dashboard-section profile-card">
+
+
+                    <div class="profile-header">
+
+
+                        <div
+                            class="profile-avatar"
+                            id="profile-avatar">
+
+                            ?
+
+                        </div>
+
+
+                        <div class="profile-info">
+
+                            <h2
+                                id="profile-name-display">
+
+                                Loading...
+
+                            </h2>
+
+                            <p>
+                                Manage your personal information below
+                            </p>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <!-- PROFILE FORM -->
+
+                    <form
+                        id="profile-form"
+                        class="profile-form"
+                        novalidate>
+
+
+                        <!-- FULL NAME -->
+
+                        <div class="form-group">
+
+                            <label for="profile-fullname">
+                                Full Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="profile-fullname"
+                                class="form-control"
+                                placeholder="Your full name">
+
+                        </div>
+
+
+                        <!-- EMAIL -->
+
+                        <div class="form-group">
+
+                            <label for="profile-email">
+                                Email Address
+                            </label>
+
+                            <input
+                                type="email"
+                                id="profile-email"
+                                class="form-control"
+                                disabled
+                                placeholder="Your email">
+
+                        </div>
+
+
+                        <!-- PHONE -->
+
+                        <div class="form-group">
+
+                            <label for="profile-phone">
+                                Phone Number
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="profile-phone"
+                                class="form-control"
+                                placeholder="Your phone number">
+
+                        </div>
+
+
+                        <!-- ROLE -->
+
+                        <div class="form-group">
+
+                            <label for="profile-role">
+                                Role
+                            </label>
+
+                            <input
+                                type="text"
+                                id="profile-role"
+                                class="form-control"
+                                disabled
+                                placeholder="Role">
+
+                        </div>
+
+
+                        <!-- MEMBER SINCE -->
+
+                        <div class="form-group">
+
+                            <label for="profile-created">
+                                Member Since
+                            </label>
+
+                            <input
+                                type="text"
+                                id="profile-created"
+                                class="form-control"
+                                disabled
+                                placeholder="Account creation date">
+
+                        </div>
+
+
+                        <!-- PROFILE ACTIONS -->
+
+                        <div class="profile-actions">
+
+
+                            <button
+                                type="submit"
+                                id="save-profile-btn"
+                                class="btn btn-primary">
+
+                                Save Changes
+
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-ghost"
+                                onclick="loadProfile()">
+
+                                Reset
+
+                            </button>
+
+
+                        </div>
+
+
+                    </form>
+
+
+                </div>
+
+
+                <!-- =================================================
+                     APPEARANCE
+                     ================================================= -->
+
+                <div class="appearance-card">
+
+
+                    <div class="appearance-header">
+
+                        <div class="appearance-title">
+
+                            Appearance
+
+                        </div>
+
+
+                        <div class="appearance-description">
+
+                            Choose how FinPocket looks for you.
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="theme-options">
+
+
+                        <!-- LIGHT -->
+
+                        <label class="theme-option">
+
+                            <input
+                                type="radio"
+                                name="theme"
+                                value="light"
+                                id="theme-light">
+
+                            <div class="theme-option-content">
+
+
+                                <div class="theme-icon">
+                                    ☀️
+                                </div>
+
+
+                                <div class="theme-text">
+
+                                    <div class="theme-name">
+                                        Light
+                                    </div>
+
+                                    <div class="theme-description">
+                                        Clean and bright
+                                    </div>
+
+                                </div>
+
+
+                                <div class="theme-check">
+                                    ✓
+                                </div>
+
+
+                            </div>
+
+                        </label>
+
+
+                        <!-- DARK -->
+
+                        <label class="theme-option">
+
+                            <input
+                                type="radio"
+                                name="theme"
+                                value="dark"
+                                id="theme-dark">
+
+                            <div class="theme-option-content">
+
+
+                                <div class="theme-icon">
+                                    🌙
+                                </div>
+
+
+                                <div class="theme-text">
+
+                                    <div class="theme-name">
+                                        Dark
+                                    </div>
+
+                                    <div class="theme-description">
+                                        Comfortable in low light
+                                    </div>
+
+                                </div>
+
+
+                                <div class="theme-check">
+                                    ✓
+                                </div>
+
+
+                            </div>
+
+                        </label>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        </main>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
     <script src="js/api.js"></script>
+
     <script src="js/auth.js"></script>
+
+    <script src="js/theme.js"></script>
+
     <script src="js/profile.js"></script>
+
+
     <script>
-        // Adjust dashboard link based on role
-        document.addEventListener('DOMContentLoaded', () => {
-            const user = getCurrentUser();
-            const dashLink = document.getElementById('nav-dashboard-link');
-            if (user && user.role === 'ADMIN' && dashLink) {
-                dashLink.href = 'admin-dashboard.html';
+
+        /* =====================================================
+           DASHBOARD LINK BASED ON ROLE
+           ===================================================== */
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+
+                const user =
+                    getCurrentUser();
+
+                const dashLink =
+                    document.getElementById(
+                        "nav-dashboard-link"
+                    );
+
+                if (
+                    user &&
+                    user.role === "ADMIN" &&
+                    dashLink
+                ) {
+
+                    dashLink.href =
+                        "admin-dashboard.html";
+
+                }
+
+
+                /* =============================================
+                   SET CURRENT THEME
+                   ============================================= */
+
+                const currentTheme =
+                    localStorage.getItem(
+                        "finpocket-theme"
+                    ) || "dark";
+
+
+                const themeRadio =
+                    document.querySelector(
+                        `input[name="theme"][value="${currentTheme}"]`
+                    );
+
+
+                if (themeRadio) {
+                    themeRadio.checked = true;
+                }
+
             }
-        });
+        );
+
+
+        /* =====================================================
+           THEME SELECTION
+           ===================================================== */
+
+        document.querySelectorAll(
+            'input[name="theme"]'
+        ).forEach(
+            radio => {
+
+                radio.addEventListener(
+                    "change",
+                    function () {
+
+                        if (
+                            typeof setTheme === "function"
+                        ) {
+
+                            setTheme(
+                                this.value
+                            );
+
+                        } else {
+
+                            localStorage.setItem(
+                                "finpocket-theme",
+                                this.value
+                            );
+
+                            document.documentElement
+                                .setAttribute(
+                                    "data-theme",
+                                    this.value
+                                );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
     </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const currentPage =
+        window.location.pathname.split("/").pop() || "user-dashboard.html";
+
+    document.querySelectorAll(".nav-item").forEach(function (link) {
+        const href = link.getAttribute("href");
+
+        if (!href || href === "#") return;
+
+        const linkPage = href.split("/").pop();
+
+        if (linkPage === currentPage) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+});
+</script>
 </body>
+
 </html>

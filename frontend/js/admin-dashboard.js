@@ -19,11 +19,9 @@ async function loadAdminDashboard() {
     try {
         const data = await apiGet('/admin/dashboard');
 
-        if (data.success) {
-            updateAdminStats(data);
-            updateRecentUsers(data.recentUsers);
-            updateSystemInfo(data);
-        }
+        updateAdminStats(data);
+        updateRecentUsers(data.recentUsers);
+        updateSystemInfo(data);
     } catch (error) {
         console.error('Failed to load admin dashboard:', error);
         showAdminError('Unable to load admin dashboard. Please refresh the page.');
@@ -38,8 +36,8 @@ function updateAdminStats(data) {
 
     if (totalUsersEl) totalUsersEl.textContent = data.totalUsers || 0;
     if (totalAdminsEl) totalAdminsEl.textContent = data.totalAdmins || 0;
-    if (regularUsersEl) regularUsersEl.textContent = data.totalRegularUsers || 0;
-    if (systemStatusEl) systemStatusEl.textContent = data.systemStatus || 'Unknown';
+    if (regularUsersEl) regularUsersEl.textContent = data.regularUsers || 0;
+    if (systemStatusEl) systemStatusEl.textContent = data.status || 'Unknown';
 }
 
 function updateRecentUsers(users) {
@@ -49,7 +47,7 @@ function updateRecentUsers(users) {
     if (!users || users.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-muted" style="padding: 32px;">
+                <td colspan="4" class="text-center text-muted" style="padding: 32px;">
                     No users registered yet.
                 </td>
             </tr>

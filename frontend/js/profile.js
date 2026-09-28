@@ -1,20 +1,17 @@
+
 /**
  * FinPocket Profile Page Handler
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Require authentication
     if (!requireAuth()) return;
 
-    // Initialize common dashboard components
     initSidebarUser();
     initSidebarToggle();
     initLogout();
 
-    // Load profile data
     loadProfile();
 
-    // Handle profile form submission
     const form = document.getElementById('profile-form');
     if (form) {
         form.addEventListener('submit', handleProfileUpdate);
@@ -23,14 +20,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProfile() {
     try {
-        const response = await apiGet('/user/me');
+        // Backend returns UserDto directly
+        const user = await apiGet('/user/me');
 
-        if (response.success && response.data) {
-            populateProfile(response.data);
+        if (user && user.email) {
+            populateProfile(user);
+        } else {
+            throw new Error('Invalid profile data received');
         }
     } catch (error) {
         console.error('Failed to load profile:', error);
-        showAlert('profile-alert', 'Unable to load profile data. Please refresh.');
+        showAlert(
+            'profile-alert',
+            error.message || 'Unable to load profile data. Please refresh.'
+        );
     }
 }
 
@@ -46,56 +49,101 @@ function populateProfile(user) {
     if (nameInput) nameInput.value = user.fullName || '';
     if (emailInput) emailInput.value = user.email || '';
     if (phoneInput) phoneInput.value = user.phone || '';
-    if (roleInput) roleInput.value = user.role === 'ADMIN' ? 'Administrator' : 'Member';
-    if (createdAtInput && user.createdAt) {
-        createdAtInput.value = new Date(user.createdAt).toLocaleDateString('en-IN', {
-            year: 'numeric', month: 'long', day: 'numeric'
-        });
+
+    if (roleInput) {
+        roleInput.value = user.role === 'ADMIN'
+            ? 'Administrator'
+            : 'Member';
     }
+
+    if (createdAtInput) {
+        createdAtInput.value = user.createdAt
+            ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })
+            : '';
+    }
+
     if (avatarEl) {
-        const names = (user.fullName || '').trim().split(' ');
+        const names = (user.fullName || '').trim().split(/\s+/).filter(Boolean);
+
         avatarEl.textContent = names.length >= 2
             ? (names[0][0] + names[names.length - 1][0]).toUpperCase()
             : (names[0] ? names[0][0].toUpperCase() : '?');
     }
-    if (nameDisplay) nameDisplay.textContent = user.fullName || '';
+
+    if (nameDisplay) {
+        nameDisplay.textContent = user.fullName || '';
+    }
 }
 
 async function handleProfileUpdate(e) {
     e.preventDefault();
 
-    const fullName = document.getElementById('profile-fullname').value.trim();
-    const phone = document.getElementById('profile-phone').value.trim();
+    const nameInput = document.getElementById('profile-fullname');
+    const phoneInput = document.getElementById('profile-phone');
+
+    const fullName = nameInput.value.trim();
+    const phone = phoneInput.value.trim();
 
     if (!fullName || fullName.length < 2) {
-        showAlert('profile-alert', 'Full name must be at least 2 characters');
+        showAlert(
+            'profile-alert',
+            'Full name must be at least 2 characters'
+        );
         return;
     }
 
     const saveBtn = document.getElementById('save-profile-btn');
+
     if (saveBtn) {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
     }
 
     try {
-        const response = await apiPut('/user/profile', { fullName, phone });
+        // Backend returns the updated UserDto directly
+        const updatedUser = await apiPut('/user/profile', {
+            fullName,
+            phone
+        });
 
-        if (response.success) {
-            showAlert('profile-alert', 'Profile updated successfully!', 'success');
-
-            // Update local storage with new data
-            const user = getCurrentUser();
-            if (user) {
-                user.fullName = response.data.fullName || fullName;
-                localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-                initSidebarUser(); // Refresh sidebar
-            }
-
-            populateProfile(response.data);
+        if (!updatedUser || !updatedUser.email) {
+            throw new Error('Invalid profile response received');
         }
+
+        populateProfile(updatedUser);
+
+        // Update cached user details
+        const cachedUser = getCurrentUser();
+
+        if (cachedUser) {
+            cachedUser.fullName = updatedUser.fullName || fullName;
+            cachedUser.email = updatedUser.email;
+            cachedUser.phone = updatedUser.phone || '';
+
+            localStorage.setItem(
+                AUTH_USER_KEY,
+                JSON.stringify(cachedUser)
+            );
+        }
+
+        initSidebarUser();
+
+        showAlert(
+            'profile-alert',
+            'Profile updated successfully!',
+            'success'
+        );
     } catch (error) {
-        showAlert('profile-alert', error.message || 'Failed to update profile');
+        console.error('Failed to update profile:', error);
+
+        showAlert(
+            'profile-alert',
+            error.message || 'Failed to update profile'
+        );
     } finally {
         if (saveBtn) {
             saveBtn.disabled = false;
