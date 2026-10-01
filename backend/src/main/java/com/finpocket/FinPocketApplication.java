@@ -12,6 +12,8 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+import org.springframework.http.HttpMethod;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -576,8 +578,11 @@ class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/auth/**")
-                        .permitAll()
+        .requestMatchers(HttpMethod.OPTIONS, "/**")
+        .permitAll()
+
+        .requestMatchers("/api/auth/**")
+        .permitAll()
 
                         .requestMatchers(
                                 "/api/admin/**")
@@ -657,7 +662,8 @@ class SecurityConfig {
                 "http://localhost:5501",
                 "http://127.0.0.1:5501",
                 "http://localhost:3000",
-                "http://127.0.0.1:3000"
+                "http://127.0.0.1:3000",
+                "https://finpocket-frontend.onrender.com"
         ));
 
         configuration.setAllowedMethods(Arrays.asList(
