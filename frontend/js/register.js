@@ -88,11 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await registerUser(fullName, email, password, confirmPassword, phone);
 
             if (response.success) {
-                showAlert('register-alert', 'Account created successfully! Redirecting to login...', 'success');
+                showAlert('register-alert', response.message || 'Account created successfully! Please check your email to verify. Redirecting to login...', 'success');
 
                 setTimeout(() => {
-                    window.location.href = '/login.html';
-                }, 2000);
+                    window.location.href = 'login.html';
+                }, 2500);
             }
         } catch (error) {
             showAlert('register-alert', error.message || 'Registration failed. Please try again.');

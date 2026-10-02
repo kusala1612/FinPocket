@@ -24,6 +24,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.mongodb.repository.Query;
 
 import lombok.AllArgsConstructor;
@@ -108,17 +109,72 @@ import java.util.stream.Collectors;
 @EnableScheduling
 public class FinPocketApplication {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(FinPocketApplication.class);
+
     public static void main(String[] args) {
         SpringApplication.run(FinPocketApplication.class, args);
     }
-}
-    
+    @Bean
+    CommandLineRunner initAdminUser(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            try {
+                if (userRepository.countByRole(Role.ADMIN) == 0) {
+                    User admin = User.builder()
+                            .fullName("System Administrator")
+                            .email("admin@finpocket.com")
+                            .password(passwordEncoder.encode("Admin@123"))
+                            .role(Role.ADMIN)
+                            .build();
 
+                    userRepository.save(admin);
+                    logger.info("===========================================");
+                    logger.info("Default admin account created:");
+                    logger.info("Email: admin@finpocket.com");
+                    logger.info("Password: Admin@123");
+                    logger.info("===========================================");
+                }
+            } catch (Exception e) {
+                logger.warn("Could not seed default admin user: {}", e.getMessage());
+            }
+        };
+    }
+}
 
 @Configuration
 @EnableMongoAuditing
 class MongoConfig {
 }
+
+@Configuration
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+        name = "spring.data.mongodb.uri",
+        havingValue = "mongodb://localhost:27017/finpocket_db",
+        matchIfMissing = true
+)
+class EmbeddedMongoConfig {
+
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(EmbeddedMongoConfig.class);
+
+    @Bean(destroyMethod = "shutdown")
+    public MongoServer mongoServer() {
+        MongoServer server = new MongoServer(new MemoryBackend());
+        InetSocketAddress serverAddress = server.bind();
+        logger.info("==================================================================");
+        logger.info("Embedded in-memory MongoDB server started on port {}", serverAddress.getPort());
+        logger.info("==================================================================");
+        return server;
+    }
+
+    @Bean
+    @Primary
+    public MongoClient mongoClient(MongoServer mongoServer) {
+        InetSocketAddress serverAddress = mongoServer.getLocalAddress();
+        String connectionString = "mongodb://localhost:" + serverAddress.getPort() + "/finpocket_db";
+        logger.info("Connecting Spring Data MongoDB to {}", connectionString);
+        return MongoClients.create(connectionString);
+    }
+}
+
 
 
 // ============================================================
@@ -169,6 +225,9 @@ class User {
     @Builder.Default
     private Role role = Role.USER;
 
+    @Builder.Default
+    private boolean emailVerified = false;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -188,6 +247,7 @@ class UserDto {
     private String email;
     private String phone;
     private Role role;
+    private boolean emailVerified;
     private LocalDateTime createdAt;
 }
 
@@ -201,6 +261,140 @@ class ProfileUpdateRequest {
     private String fullName;
 
     private String phone;
+}
+
+
+@Document(collection = "password_reset_tokens")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class PasswordResetToken {
+
+    @org.springframework.data.annotation.Id
+    private String id;
+
+    @Indexed
+    private String email;
+
+    @Indexed(unique = true)
+    private String token;
+
+    private LocalDateTime expiresAt;
+
+    @Builder.Default
+    private boolean used = false;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+}
+
+
+@Repository
+interface PasswordResetTokenRepository
+        extends MongoRepository<PasswordResetToken, String> {
+
+    Optional<PasswordResetToken> findByToken(String token);
+
+    List<PasswordResetToken> findByEmailOrderByCreatedAtDesc(String email);
+}
+
+
+@Document(collection = "email_verification_tokens")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class EmailVerificationToken {
+
+    @org.springframework.data.annotation.Id
+    private String id;
+
+    @Indexed
+    private String email;
+
+    @Indexed(unique = true)
+    private String token;
+
+    private LocalDateTime expiresAt;
+
+    @Builder.Default
+    private boolean verified = false;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+}
+
+
+@Repository
+interface EmailVerificationTokenRepository
+        extends MongoRepository<EmailVerificationToken, String> {
+
+    Optional<EmailVerificationToken> findByToken(String token);
+
+    List<EmailVerificationToken> findByEmailOrderByCreatedAtDesc(String email);
+}
+
+
+@Document(collection = "notification_preferences")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class NotificationPreference {
+
+    @org.springframework.data.annotation.Id
+    private String id;
+
+    @Indexed(unique = true)
+    private String userEmail;
+
+    @Builder.Default
+    private boolean emailNotifications = true;
+
+    @Builder.Default
+    private boolean budgetAlerts = true;
+
+    @Builder.Default
+    private boolean goalAlerts = true;
+
+    @Builder.Default
+    private boolean reminderAlerts = true;
+
+    @Builder.Default
+    private boolean monthlySummary = true;
+
+    @Builder.Default
+    private boolean overspendingAlerts = true;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+}
+
+
+@Repository
+interface NotificationPreferenceRepository
+        extends MongoRepository<NotificationPreference, String> {
+
+    Optional<NotificationPreference> findByUserEmail(String userEmail);
+}
+
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+class NotificationPreferenceDto {
+
+    private boolean emailNotifications;
+    private boolean budgetAlerts;
+    private boolean goalAlerts;
+    private boolean reminderAlerts;
+    private boolean monthlySummary;
+    private boolean overspendingAlerts;
 }
 
 
@@ -245,6 +439,42 @@ class LoginRequest {
 
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ForgotPasswordRequest {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email")
+    private String email;
+}
+
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ResetPasswordRequest {
+
+    @NotBlank(message = "Token is required")
+    private String token;
+
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    private String newPassword;
+}
+
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ResendVerificationRequest {
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email")
+    private String email;
+}
+
+
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -258,6 +488,7 @@ class AuthResponse {
     private String fullName;
     private String email;
     private Role role;
+    private boolean emailVerified;
 }
 
 
@@ -275,6 +506,15 @@ class AuthService {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailVerificationTokenRepository emailVerificationTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     public AuthResponse register(RegisterRequest request) {
 
@@ -294,13 +534,29 @@ class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone() == null ? "" : request.getPhone().trim())
                 .role(Role.USER)
+                .emailVerified(false)
                 .build();
 
         userRepository.save(user);
 
+        // Generate email verification token
+        String verificationToken = UUID.randomUUID().toString();
+        EmailVerificationToken tokenEntity = EmailVerificationToken.builder()
+                .email(email)
+                .token(verificationToken)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .verified(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        emailVerificationTokenRepository.save(tokenEntity);
+
+        // Send verification email
+        emailService.sendVerificationEmail(email, user.getFullName(), verificationToken);
+
         return AuthResponse.builder()
                 .success(true)
-                .message("Registration successful. Please login.")
+                .message("Registration successful. Please check your email to verify your account.")
+                .emailVerified(false)
                 .build();
     }
 
@@ -335,7 +591,107 @@ class AuthService {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .emailVerified(user.isEmailVerified())
                 .build();
+    }
+
+    public ApiResponse forgotPassword(ForgotPasswordRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        Optional<User> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String token = UUID.randomUUID().toString();
+            PasswordResetToken resetToken = PasswordResetToken.builder()
+                    .email(email)
+                    .token(token)
+                    .expiresAt(LocalDateTime.now().plusHours(2))
+                    .used(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            passwordResetTokenRepository.save(resetToken);
+
+            emailService.sendPasswordResetEmail(email, user.getFullName(), token);
+        }
+
+        return ApiResponse.success("If an account exists with that email, a password reset link has been sent.");
+    }
+
+    public ApiResponse resetPassword(ResetPasswordRequest request) {
+        String tokenStr = request.getToken().trim();
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(tokenStr)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired password reset link."));
+
+        if (resetToken.isUsed()) {
+            throw new IllegalArgumentException("This password reset link has already been used.");
+        }
+
+        if (resetToken.getExpiresAt() != null && resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("This password reset link has expired. Please request a new one.");
+        }
+
+        User user = userRepository.findByEmail(resetToken.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        return ApiResponse.success("Password has been reset successfully. You can now login with your new password.");
+    }
+
+    public ApiResponse verifyEmail(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            throw new IllegalArgumentException("Verification token is missing.");
+        }
+
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByToken(token.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid verification token."));
+
+        if (verificationToken.isVerified()) {
+            return ApiResponse.success("Email is already verified. You can proceed to login.");
+        }
+
+        if (verificationToken.getExpiresAt() != null && verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Verification token has expired. Please request a new verification email.");
+        }
+
+        User user = userRepository.findByEmail(verificationToken.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        verificationToken.setVerified(true);
+        emailVerificationTokenRepository.save(verificationToken);
+
+        return ApiResponse.success("Email verified successfully! You can now log in.");
+    }
+
+    public ApiResponse resendVerification(ResendVerificationRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with this email."));
+
+        if (user.isEmailVerified()) {
+            return ApiResponse.success("Your email is already verified.");
+        }
+
+        String verificationToken = UUID.randomUUID().toString();
+        EmailVerificationToken tokenEntity = EmailVerificationToken.builder()
+                .email(email)
+                .token(verificationToken)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .verified(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+        emailVerificationTokenRepository.save(tokenEntity);
+
+        emailService.sendVerificationEmail(email, user.getFullName(), verificationToken);
+
+        return ApiResponse.success("A new verification link has been sent to your email.");
     }
 }
 
@@ -361,6 +717,34 @@ class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/forgot-password")
+    ResponseEntity<ApiResponse> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    ResponseEntity<ApiResponse> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
+
+    @GetMapping("/verify-email")
+    ResponseEntity<ApiResponse> verifyEmail(
+            @RequestParam("token") String token) {
+
+        return ResponseEntity.ok(authService.verifyEmail(token));
+    }
+
+    @PostMapping("/resend-verification")
+    ResponseEntity<ApiResponse> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest request) {
+
+        return ResponseEntity.ok(authService.resendVerification(request));
     }
 }
 
@@ -605,7 +989,10 @@ class SecurityConfig {
                                 "/",
                                 "/index.html",
                                 "/login.html",
-                                "/register.html")
+                                "/register.html",
+                                "/forgot-password.html",
+                                "/reset-password.html",
+                                "/verify-email.html")
                         .permitAll()
 
                         .anyRequest()
@@ -1096,6 +1483,7 @@ public TransactionDto add(
 
     if (saved.getType() == TransactionType.EXPENSE) {
         notificationService.checkBudget(email);
+        notificationService.checkOverspending(email, saved);
     }
 
     return toDto(saved);
@@ -1162,6 +1550,7 @@ public TransactionDto add(
     // Recheck budget after updating an expense
     if (saved.getType() == TransactionType.EXPENSE) {
         notificationService.checkBudget(email);
+        notificationService.checkOverspending(email, saved);
     }
 
     return toDto(saved);
@@ -2218,8 +2607,11 @@ interface NotificationRepository
 @Service
 class EmailService {
 
-    @Autowired
+    @Autowired(required = false)
     private JavaMailSender mailSender;
+
+    @Value("${app.frontend.url:http://localhost:5500}")
+    private String frontendUrl;
 
     public void sendNotification(
             String to,
@@ -2227,6 +2619,12 @@ class EmailService {
             String message) {
 
         if (to == null || to.trim().isEmpty()) {
+            return;
+        }
+
+        System.out.println("[FinPocket NOTIFICATION EMAIL] To: " + to + " | Subject: " + subject + "\n" + message);
+
+        if (mailSender == null) {
             return;
         }
 
@@ -2249,6 +2647,81 @@ class EmailService {
                             + to + ": " + e.getMessage());
         }
     }
+
+    public void sendVerificationEmail(String to, String fullName, String token) {
+        String verifyUrl = frontendUrl + "/verify-email.html?token=" + token;
+        String subject = "Verify your FinPocket Account";
+        String message = "Hello " + (fullName != null ? fullName : "User") + ",\n\n"
+                + "Thank you for creating an account with FinPocket!\n"
+                + "Please verify your email address by clicking the link below:\n\n"
+                + verifyUrl + "\n\n"
+                + "This verification link will expire in 24 hours.\n\n"
+                + "Best regards,\nThe FinPocket Team";
+
+        System.out.println("=================================================");
+        System.out.println(">>> [EMAIL VERIFICATION LINK] For: " + to);
+        System.out.println(">>> " + verifyUrl);
+        System.out.println("=================================================");
+
+        sendNotification(to, subject, message);
+    }
+
+    public void sendPasswordResetEmail(String to, String fullName, String token) {
+        String resetUrl = frontendUrl + "/reset-password.html?token=" + token;
+        String subject = "Reset your FinPocket Password";
+        String message = "Hello " + (fullName != null ? fullName : "User") + ",\n\n"
+                + "We received a request to reset the password for your FinPocket account.\n"
+                + "Click the link below to set a new password:\n\n"
+                + resetUrl + "\n\n"
+                + "This reset link will expire in 2 hours.\n"
+                + "If you did not request a password reset, you can safely ignore this email.\n\n"
+                + "Best regards,\nThe FinPocket Team";
+
+        System.out.println("=================================================");
+        System.out.println(">>> [PASSWORD RESET LINK] For: " + to);
+        System.out.println(">>> " + resetUrl);
+        System.out.println("=================================================");
+
+        sendNotification(to, subject, message);
+    }
+
+    public void sendMonthlySummaryEmail(
+            String to,
+            String fullName,
+            String monthName,
+            int year,
+            BigDecimal income,
+            BigDecimal expenses,
+            BigDecimal netSavings,
+            double savingsRate,
+            String topCategory,
+            BigDecimal topCategoryAmount) {
+
+        String subject = "FinPocket Monthly Financial Summary — " + monthName + " " + year;
+        String message = "Hello " + (fullName != null ? fullName : "User") + ",\n\n"
+                + "Here is your financial summary for " + monthName + " " + year + ":\n\n"
+                + "• Total Income: " + formatMoney(income) + "\n"
+                + "• Total Expenses: " + formatMoney(expenses) + "\n"
+                + "• Net Savings: " + formatMoney(netSavings) + "\n"
+                + "• Savings Rate: " + String.format(Locale.US, "%.1f%%", savingsRate) + "\n"
+                + (topCategory != null ? "• Top Expense Category: " + topCategory + " (" + formatMoney(topCategoryAmount) + ")\n" : "")
+                + "\nView detailed analytics and charts on your FinPocket dashboard:\n"
+                + frontendUrl + "/analysis.html\n\n"
+                + "Keep up the great financial habits!\n"
+                + "The FinPocket Team";
+
+        System.out.println("=================================================");
+        System.out.println(">>> [MONTHLY SUMMARY EMAIL] For: " + to + " (" + monthName + " " + year + ")");
+        System.out.println(message);
+        System.out.println("=================================================");
+
+        sendNotification(to, subject, message);
+    }
+
+    private String formatMoney(BigDecimal amount) {
+        if (amount == null) return "₹0.00";
+        return "₹" + amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
 }
 
 
@@ -2257,6 +2730,9 @@ class NotificationService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+
+    @Autowired
+    private NotificationPreferenceRepository preferenceRepository;
 
     @Autowired
     private BudgetRepository budgetRepository;
@@ -2272,6 +2748,53 @@ class NotificationService {
 
     @Autowired
     private EmailService emailService;
+
+
+    // ========================================================
+    // NOTIFICATION PREFERENCES
+    // ========================================================
+
+    public NotificationPreference getOrCreatePreferences(String email) {
+        return preferenceRepository.findByUserEmail(email)
+                .orElseGet(() -> preferenceRepository.save(
+                        NotificationPreference.builder()
+                                .userEmail(email)
+                                .emailNotifications(true)
+                                .budgetAlerts(true)
+                                .goalAlerts(true)
+                                .reminderAlerts(true)
+                                .monthlySummary(true)
+                                .overspendingAlerts(true)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build()
+                ));
+    }
+
+    public NotificationPreferenceDto getPreferences(String email) {
+        NotificationPreference p = getOrCreatePreferences(email);
+        return NotificationPreferenceDto.builder()
+                .emailNotifications(p.isEmailNotifications())
+                .budgetAlerts(p.isBudgetAlerts())
+                .goalAlerts(p.isGoalAlerts())
+                .reminderAlerts(p.isReminderAlerts())
+                .monthlySummary(p.isMonthlySummary())
+                .overspendingAlerts(p.isOverspendingAlerts())
+                .build();
+    }
+
+    public NotificationPreferenceDto updatePreferences(String email, NotificationPreferenceDto dto) {
+        NotificationPreference p = getOrCreatePreferences(email);
+        p.setEmailNotifications(dto.isEmailNotifications());
+        p.setBudgetAlerts(dto.isBudgetAlerts());
+        p.setGoalAlerts(dto.isGoalAlerts());
+        p.setReminderAlerts(dto.isReminderAlerts());
+        p.setMonthlySummary(dto.isMonthlySummary());
+        p.setOverspendingAlerts(dto.isOverspendingAlerts());
+        p.setUpdatedAt(LocalDateTime.now());
+        preferenceRepository.save(p);
+        return dto;
+    }
 
 
     // ========================================================
@@ -2317,7 +2840,6 @@ class NotificationService {
         Notification saved =
                 notificationRepository.save(notification);
 
-
         return toDto(saved);
     }
 
@@ -2335,9 +2857,7 @@ class NotificationService {
                                 email);
 
         for (Notification notification : notifications) {
-
             notification.setRead(true);
-
         }
 
         notificationRepository.saveAll(notifications);
@@ -2371,7 +2891,6 @@ class NotificationService {
         /*
          * Do not create duplicate automatic alerts.
          */
-
         if (alertKey != null &&
                 notificationRepository
                         .findByUserEmailAndAlertKey(
@@ -2381,7 +2900,6 @@ class NotificationService {
 
             return null;
         }
-
 
         Notification notification =
                 Notification.builder()
@@ -2394,82 +2912,38 @@ class NotificationService {
                         .createdAt(LocalDateTime.now())
                         .build();
 
+        Notification saved = notificationRepository.save(notification);
 
-        return toDto(
-                notificationRepository.save(notification));
+        // Check if email notifications are enabled for this user
+        NotificationPreference pref = getOrCreatePreferences(email);
+        if (pref.isEmailNotifications()) {
+            emailService.sendNotification(email, title, message);
+        }
+
+        return toDto(saved);
     }
 
 
     // ========================================================
-    // CHECK BUDGET
+    // CHECK BUDGET (Overall & Category Budgets)
     // ========================================================
 
     public void checkBudget(
             String email) {
 
+        NotificationPreference pref = getOrCreatePreferences(email);
+        if (!pref.isBudgetAlerts()) {
+            return;
+        }
+
         YearMonth currentMonth =
                 YearMonth.now();
 
-
-                Optional<Budget> budgetOptional =
-        budgetRepository
-                .findByUserEmailAndYearAndMonthAndCategoryIsNull(
-                        email,
-                        currentMonth.getYear(),
-                        currentMonth.getMonthValue());
-
-
-        if (budgetOptional.isEmpty()) {
-            return;
-        }
-
-
-        Budget budget =
-                budgetOptional.get();
-
-
         LocalDate start =
-                currentMonth
-                        .atDay(1);
-
+                currentMonth.atDay(1);
 
         LocalDate end =
-                currentMonth
-                        .atEndOfMonth();
-
-
-        BigDecimal spent =
-                transactionRepository
-                        .findByUserEmailAndDateBetweenOrderByDateDesc(
-                                email,
-                                start,
-                                end)
-                        .stream()
-                        .filter(t ->
-                                t.getType() ==
-                                        TransactionType.EXPENSE)
-                        .map(Transaction::getAmount)
-                        .reduce(
-                                BigDecimal.ZERO,
-                                BigDecimal::add);
-
-
-        BigDecimal budgetAmount =
-                budget.getAmount() == null
-                        ? BigDecimal.ZERO
-                        : budget.getAmount();
-
-
-        if (budgetAmount.signum() == 0) {
-            return;
-        }
-
-
-        double percentage =
-                spent.doubleValue()
-                        / budgetAmount.doubleValue()
-                        * 100;
-
+                currentMonth.atEndOfMonth();
 
         String monthName =
                 currentMonth.getMonth()
@@ -2477,111 +2951,159 @@ class NotificationService {
                                 java.time.format.TextStyle.FULL,
                                 Locale.ENGLISH);
 
+        List<Transaction> monthTransactions =
+                transactionRepository
+                        .findByUserEmailAndDateBetweenOrderByDateDesc(
+                                email,
+                                start,
+                                end);
 
-        // ====================================================
-        // 100% EXCEEDED
-        // ====================================================
+        // 1. Check Overall Budget
+        Optional<Budget> budgetOptional =
+                budgetRepository
+                        .findByUserEmailAndYearAndMonthAndCategoryIsNull(
+                                email,
+                                currentMonth.getYear(),
+                                currentMonth.getMonthValue());
 
-        if (percentage >= 100) {
+        if (budgetOptional.isPresent()) {
+            Budget budget = budgetOptional.get();
+            BigDecimal spent = monthTransactions.stream()
+                    .filter(t -> t.getType() == TransactionType.EXPENSE)
+                    .map(Transaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal exceededBy =
-                    spent.subtract(budgetAmount);
+            BigDecimal budgetAmount = budget.getAmount() == null ? BigDecimal.ZERO : budget.getAmount();
+
+            if (budgetAmount.signum() > 0) {
+                double percentage = spent.doubleValue() / budgetAmount.doubleValue() * 100;
+
+                if (percentage >= 100) {
+                    BigDecimal exceededBy = spent.subtract(budgetAmount);
+                    create(
+                            email,
+                            "🚨 Overall Budget Exceeded",
+                            "Your " + monthName + " budget has been exceeded by " +
+                                    formatMoney(exceededBy) + ". Total spending is " +
+                                    formatMoney(spent) + " against a budget of " +
+                                    formatMoney(budgetAmount) + ".",
+                            "BUDGET_EXCEEDED",
+                            "BUDGET:" + budget.getId() + ":100"
+                    );
+                } else if (percentage >= 90) {
+                    BigDecimal remaining = budgetAmount.subtract(spent);
+                    create(
+                            email,
+                            "⚠️ Budget Almost Reached",
+                            "You have used " + String.format(Locale.US, "%.1f", percentage) +
+                                    "% of your " + monthName + " budget. Only " +
+                                    formatMoney(remaining) + " remains.",
+                            "BUDGET_WARNING",
+                            "BUDGET:" + budget.getId() + ":90"
+                    );
+                } else if (percentage >= 80) {
+                    BigDecimal remaining = budgetAmount.subtract(spent);
+                    create(
+                            email,
+                            "🔔 Budget Warning",
+                            "You have used " + String.format(Locale.US, "%.1f", percentage) +
+                                    "% of your " + monthName + " budget. " +
+                                    formatMoney(remaining) + " remains.",
+                            "BUDGET_WARNING",
+                            "BUDGET:" + budget.getId() + ":80"
+                    );
+                }
+            }
+        }
+
+        // 2. Check Category Budgets
+        List<Budget> categoryBudgets = budgetRepository
+                .findByUserEmailAndYearAndMonth(
+                        email,
+                        currentMonth.getYear(),
+                        currentMonth.getMonthValue())
+                .stream()
+                .filter(b -> b.getCategory() != null && !b.getCategory().isBlank())
+                .toList();
+
+        for (Budget catBudget : categoryBudgets) {
+            BigDecimal catSpent = monthTransactions.stream()
+                    .filter(t -> t.getType() == TransactionType.EXPENSE && catBudget.getCategory().equalsIgnoreCase(t.getCategory()))
+                    .map(Transaction::getAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal limit = catBudget.getAmount() == null ? BigDecimal.ZERO : catBudget.getAmount();
+            if (limit.signum() <= 0) continue;
+
+            double catPct = catSpent.doubleValue() / limit.doubleValue() * 100;
+            if (catPct >= 100) {
+                BigDecimal over = catSpent.subtract(limit);
+                create(
+                        email,
+                        "🚨 Category Budget Exceeded: " + catBudget.getCategory(),
+                        "Your " + catBudget.getCategory() + " budget for " + monthName + " has been exceeded by "
+                                + formatMoney(over) + ". Total spending: " + formatMoney(catSpent) + " against " + formatMoney(limit) + ".",
+                        "BUDGET_EXCEEDED",
+                        "BUDGET:CAT:" + catBudget.getId() + ":100"
+                );
+            } else if (catPct >= 80) {
+                BigDecimal rem = limit.subtract(catSpent);
+                create(
+                        email,
+                        "🔔 Category Budget Warning: " + catBudget.getCategory(),
+                        "You have reached " + String.format(Locale.US, "%.1f%%", catPct) + " of your "
+                                + catBudget.getCategory() + " budget for " + monthName + ". Only " + formatMoney(rem) + " remains.",
+                        "BUDGET_WARNING",
+                        "BUDGET:CAT:" + catBudget.getId() + ":80"
+                );
+            }
+        }
+    }
 
 
-            create(
-                    email,
+    // ========================================================
+    // CHECK OVERSPENDING / SPENDING SPIKE
+    // ========================================================
 
-                    "🚨 Budget Exceeded",
-
-                    "Your " +
-                            monthName +
-                            " budget has been exceeded by " +
-                            formatMoney(exceededBy) +
-                            ". Total spending is " +
-                            formatMoney(spent) +
-                            " against a budget of " +
-                            formatMoney(budgetAmount) +
-                            ".",
-
-                    "BUDGET_EXCEEDED",
-
-                    "BUDGET:" +
-                            budget.getId() +
-                            ":100"
-            );
-
+    public void checkOverspending(String email, Transaction transaction) {
+        if (transaction == null || transaction.getType() != TransactionType.EXPENSE || transaction.getAmount() == null) {
             return;
         }
 
-
-        // ====================================================
-        // 90% WARNING
-        // ====================================================
-
-        if (percentage >= 90) {
-
-            BigDecimal remaining =
-                    budgetAmount.subtract(spent);
-
-
-            create(
-                    email,
-
-                    "⚠️ Budget Almost Reached",
-
-                    "You have used " +
-                            String.format(
-                                    Locale.US,
-                                    "%.1f",
-                                    percentage) +
-                            "% of your " +
-                            monthName +
-                            " budget. Only " +
-                            formatMoney(remaining) +
-                            " remains.",
-
-                    "BUDGET_WARNING",
-
-                    "BUDGET:" +
-                            budget.getId() +
-                            ":90"
-            );
-
+        NotificationPreference pref = getOrCreatePreferences(email);
+        if (!pref.isOverspendingAlerts()) {
             return;
         }
 
+        BigDecimal amount = transaction.getAmount();
+        YearMonth currentMonth = YearMonth.now();
+        Optional<Budget> budgetOpt = budgetRepository
+                .findByUserEmailAndYearAndMonthAndCategoryIsNull(email, currentMonth.getYear(), currentMonth.getMonthValue());
 
-        // ====================================================
-        // 80% WARNING
-        // ====================================================
+        boolean isSpike = false;
+        String reason = "";
 
-        if (percentage >= 80) {
+        if (budgetOpt.isPresent() && budgetOpt.get().getAmount() != null && budgetOpt.get().getAmount().signum() > 0) {
+            BigDecimal monthlyBudget = budgetOpt.get().getAmount();
+            if (amount.compareTo(monthlyBudget.multiply(BigDecimal.valueOf(0.5))) >= 0) {
+                isSpike = true;
+                reason = "This single expense represents "
+                        + String.format(Locale.US, "%.0f%%", (amount.doubleValue() / monthlyBudget.doubleValue() * 100))
+                        + " of your total monthly budget!";
+            }
+        } else if (amount.compareTo(BigDecimal.valueOf(10000)) >= 0) {
+            isSpike = true;
+            reason = "A single large transaction of " + formatMoney(amount) + " was recorded.";
+        }
 
-            BigDecimal remaining =
-                    budgetAmount.subtract(spent);
-
-
+        if (isSpike) {
             create(
                     email,
-
-                    "🔔 Budget Warning",
-
-                    "You have used " +
-                            String.format(
-                                    Locale.US,
-                                    "%.1f",
-                                    percentage) +
-                            "% of your " +
-                            monthName +
-                            " budget. " +
-                            formatMoney(remaining) +
-                            " remains.",
-
-                    "BUDGET_WARNING",
-
-                    "BUDGET:" +
-                            budget.getId() +
-                            ":80"
+                    "⚠️ Spending Spike Detected",
+                    "High expense of " + formatMoney(amount) + " recorded for \""
+                            + (transaction.getCategory() != null ? transaction.getCategory() : "General") + "\". " + reason,
+                    "OVERSPENDING",
+                    "OVERSPEND:" + transaction.getId()
             );
         }
     }
@@ -2595,29 +3117,29 @@ class NotificationService {
             String email,
             String goalId) {
 
+        NotificationPreference pref = getOrCreatePreferences(email);
+        if (!pref.isGoalAlerts()) {
+            return;
+        }
+
         Optional<SavingGoal> goalOptional =
                 savingGoalRepository.findById(goalId);
-
 
         if (goalOptional.isEmpty()) {
             return;
         }
 
-
         SavingGoal goal =
                 goalOptional.get();
-
 
         if (!goal.getUserEmail().equals(email)) {
             return;
         }
 
-
         if (goal.getTargetAmount() == null ||
                 goal.getSavedAmount() == null) {
             return;
         }
-
 
         if (goal.getSavedAmount()
                 .compareTo(
@@ -2625,21 +3147,101 @@ class NotificationService {
 
             create(
                     email,
-
                     "🏆 Saving Goal Achieved!",
-
                     "Congratulations! You have reached your saving goal \"" +
                             goal.getName() +
                             "\" with " +
                             formatMoney(
                                     goal.getTargetAmount()) +
                             " saved.",
-
                     "GOAL_ACHIEVED",
-
                     "GOAL:" +
                             goal.getId() +
                             ":ACHIEVED"
+            );
+        }
+    }
+
+
+    // ========================================================
+    // GENERATE MONTHLY FINANCIAL SUMMARY
+    // ========================================================
+
+    public void generateMonthlySummary(String email, YearMonth targetMonth) {
+        NotificationPreference pref = getOrCreatePreferences(email);
+        if (!pref.isMonthlySummary()) {
+            return;
+        }
+
+        LocalDate start = targetMonth.atDay(1);
+        LocalDate end = targetMonth.atEndOfMonth();
+
+        List<Transaction> transactions = transactionRepository
+                .findByUserEmailAndDateBetweenOrderByDateDesc(email, start, end);
+
+        BigDecimal income = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal expenses = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal netSavings = income.subtract(expenses);
+        double savingsRate = income.signum() > 0
+                ? (netSavings.doubleValue() / income.doubleValue()) * 100
+                : 0.0;
+
+        // Group expenses by category
+        Map<String, BigDecimal> categoryExpenses = transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE && t.getCategory() != null)
+                .collect(Collectors.groupingBy(
+                        Transaction::getCategory,
+                        Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
+                ));
+
+        String topCategory = null;
+        BigDecimal topAmount = BigDecimal.ZERO;
+        for (Map.Entry<String, BigDecimal> entry : categoryExpenses.entrySet()) {
+            if (entry.getValue().compareTo(topAmount) > 0) {
+                topAmount = entry.getValue();
+                topCategory = entry.getKey();
+            }
+        }
+
+        String monthName = targetMonth.getMonth().getDisplayName(java.time.format.TextStyle.FULL, Locale.ENGLISH);
+        String alertKey = "SUMMARY:" + targetMonth.getYear() + ":" + targetMonth.getMonthValue();
+
+        String summaryMsg = "Summary for " + monthName + " " + targetMonth.getYear() + ": "
+                + "Income " + formatMoney(income) + ", Expenses " + formatMoney(expenses)
+                + ", Net " + formatMoney(netSavings) + " (" + String.format(Locale.US, "%.1f%%", savingsRate) + " saved)."
+                + (topCategory != null ? " Top spend: " + topCategory + " (" + formatMoney(topAmount) + ")." : "");
+
+        create(
+                email,
+                "📊 Monthly Financial Summary — " + monthName + " " + targetMonth.getYear(),
+                summaryMsg,
+                "MONTHLY_SUMMARY",
+                alertKey
+        );
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        String fullName = userOpt.map(User::getFullName).orElse("User");
+
+        if (pref.isEmailNotifications()) {
+            emailService.sendMonthlySummaryEmail(
+                    email,
+                    fullName,
+                    monthName,
+                    targetMonth.getYear(),
+                    income,
+                    expenses,
+                    netSavings,
+                    savingsRate,
+                    topCategory,
+                    topAmount
             );
         }
     }
@@ -2658,8 +3260,7 @@ class NotificationService {
                         .findById(id)
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
-                                        "Notification not found"));
-
+                                         "Notification not found"));
 
         if (!notification.getUserEmail()
                 .equals(email)) {
@@ -2667,7 +3268,6 @@ class NotificationService {
             throw new IllegalArgumentException(
                     "You cannot access this notification");
         }
-
 
         return notification;
     }
@@ -2698,6 +3298,8 @@ class NotificationService {
     private String formatMoney(
             BigDecimal amount) {
 
+        if (amount == null) return "₹0.00";
+
         return "₹" +
                 amount.setScale(
                         2,
@@ -2705,12 +3307,53 @@ class NotificationService {
                         .toPlainString();
     }
 }
+
+
 @RestController
 @RequestMapping("/api/notifications")
 class NotificationController {
 
     @Autowired
     private NotificationService notificationService;
+
+
+    // ========================================================
+    // PREFERENCES
+    // ========================================================
+
+    @GetMapping("/preferences")
+    ResponseEntity<NotificationPreferenceDto> getPreferences(
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                notificationService.getPreferences(
+                        authentication.getName()));
+    }
+
+    @PutMapping("/preferences")
+    ResponseEntity<NotificationPreferenceDto> updatePreferences(
+            Authentication authentication,
+            @RequestBody NotificationPreferenceDto dto) {
+
+        return ResponseEntity.ok(
+                notificationService.updatePreferences(
+                        authentication.getName(),
+                        dto));
+    }
+
+    @PostMapping("/monthly-summary")
+    ResponseEntity<ApiResponse> triggerMonthlySummary(
+            Authentication authentication) {
+
+        notificationService.generateMonthlySummary(
+                authentication.getName(),
+                YearMonth.now()
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Monthly financial summary generated and sent!"));
+    }
 
 
     // ========================================================
@@ -2835,11 +3478,28 @@ class DashboardResponse {
 }
 
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+class ChangePasswordRequest {
+
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
+
+    @NotBlank(message = "New password is required")
+    @Size(min = 6, message = "New password must be at least 6 characters")
+    private String newPassword;
+}
+
+
 @Service
 class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -2923,6 +3583,24 @@ class UserService {
                 userRepository.save(user));
     }
 
+    public void changePassword(
+            String email,
+            ChangePasswordRequest request) {
+
+        User user = getUser(email);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Current password does not match");
+        }
+
+        if (request.getCurrentPassword().equals(request.getNewPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as the current password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
     private User getUser(String email) {
 
         return userRepository.findByEmail(email)
@@ -2950,6 +3628,7 @@ class UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
+                .emailVerified(user.isEmailVerified())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
@@ -2990,6 +3669,19 @@ class UserController {
                 userService.updateProfile(
                         authentication.getName(),
                         request));
+    }
+
+    @PutMapping("/change-password")
+    ResponseEntity<ApiResponse> changePassword(
+            Authentication authentication,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        userService.changePassword(
+                authentication.getName(),
+                request);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Password changed successfully"));
     }
 }
 
@@ -3902,6 +4594,13 @@ class TransactionReminderScheduler {
 
             String email = transaction.getUserEmail();
 
+            NotificationPreference pref = notificationService.getOrCreatePreferences(email);
+            if (!pref.isReminderAlerts()) {
+                transaction.setReminderSent(true);
+                transactionRepository.save(transaction);
+                continue;
+            }
+
             String title = "🔔 Transaction Reminder";
 
             String message =
@@ -4049,5 +4748,34 @@ class RecurringTransactionScheduler {
             case YEARLY -> date.plusYears(1);
             case NONE -> null;
         };
+    }
+}
+
+// ============================================================
+// MONTHLY FINANCIAL SUMMARY SCHEDULER
+// ============================================================
+
+@Component
+class MonthlyFinancialSummaryScheduler {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    // Runs at 09:00 AM on the 1st of every month
+    @Scheduled(cron = "0 0 9 1 * ?")
+    public void generateMonthlySummaries() {
+        YearMonth previousMonth = YearMonth.now().minusMonths(1);
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            try {
+                notificationService.generateMonthlySummary(user.getEmail(), previousMonth);
+            } catch (Exception e) {
+                System.err.println("Failed to generate monthly summary for " + user.getEmail() + ": " + e.getMessage());
+            }
+        }
     }
 }

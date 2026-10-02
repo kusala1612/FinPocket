@@ -450,6 +450,51 @@
                     1fr;
             }
 
+        /* Switch toggle slider */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider.round {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #4b5563;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        .switch input:checked + .slider {
+            background-color: var(--theme-primary, #2563eb) !important;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(22px);
         }
 
     </style>
@@ -762,9 +807,12 @@
 
                         <div class="form-group">
 
-                            <label for="profile-email">
-                                Email Address
-                            </label>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label for="profile-email" style="margin-bottom: 0;">
+                                    Email Address
+                                </label>
+                                <span id="email-verification-badge" style="font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 6px;"></span>
+                            </div>
 
                             <input
                                 type="email"
@@ -772,6 +820,13 @@
                                 class="form-control"
                                 disabled
                                 placeholder="Your email">
+
+                            <div id="email-verify-actions" style="margin-top: 8px; display: none;">
+                                <button type="button" id="resend-profile-verify-btn" class="btn btn-ghost" style="font-size: 0.8rem; padding: 4px 10px; border: 1px solid var(--theme-border);">
+                                    Resend Verification Email
+                                </button>
+                                <span id="profile-verify-msg" style="font-size: 0.8rem; margin-left: 8px; color: var(--theme-secondary);"></span>
+                            </div>
 
                         </div>
 
@@ -864,8 +919,167 @@
 
 
                 <!-- =================================================
-                     APPEARANCE
+                     CHANGE PASSWORD
                      ================================================= -->
+                <div class="dashboard-section profile-card" style="margin-top: 24px;">
+
+                    <div class="profile-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 20px;">
+                        <div class="profile-avatar" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 1.5rem;">
+                            🔒
+                        </div>
+                        <div class="profile-info">
+                            <h2>Change Password</h2>
+                            <p>Update your password to keep your account secure</p>
+                        </div>
+                    </div>
+
+                    <div id="password-alert"></div>
+
+                    <form id="password-form" class="profile-form" novalidate>
+                        <div class="form-group">
+                            <label for="current-password">Current Password</label>
+                            <div class="input-wrapper" style="position: relative;">
+                                <input type="password" id="current-password" class="form-control"
+                                       placeholder="Enter your current password" required>
+                                <button type="button" class="password-toggle" id="toggle-current-password"
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--theme-secondary);">👁️</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new-password">New Password</label>
+                            <div class="input-wrapper" style="position: relative;">
+                                <input type="password" id="new-password" class="form-control"
+                                       placeholder="Enter new password (min. 6 chars)" required>
+                                <button type="button" class="password-toggle" id="toggle-new-password"
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--theme-secondary);">👁️</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm-new-password">Confirm New Password</label>
+                            <div class="input-wrapper" style="position: relative;">
+                                <input type="password" id="confirm-new-password" class="form-control"
+                                       placeholder="Confirm your new password" required>
+                                <button type="button" class="password-toggle" id="toggle-confirm-new-password"
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--theme-secondary);">👁️</button>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <button type="submit" id="save-password-btn" class="btn btn-primary">
+                                Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <!-- =================================================
+                     NOTIFICATION PREFERENCES
+                     ================================================= -->
+                <div class="dashboard-section profile-card" style="margin-top: 24px;">
+
+                    <div class="profile-header" style="border-bottom: 1px solid var(--theme-border); padding-bottom: 16px; margin-bottom: 20px;">
+                        <div class="profile-avatar" style="background: rgba(20, 184, 166, 0.15); color: #14b8a6; font-size: 1.5rem;">
+                            🔔
+                        </div>
+                        <div class="profile-info">
+                            <h2>Notification Preferences</h2>
+                            <p>Customize email notifications and financial alerts</p>
+                        </div>
+                    </div>
+
+                    <div id="pref-alert"></div>
+
+                    <form id="preferences-form" novalidate>
+                        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+
+                            <!-- Email Notifications Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">✉️ Email Notifications</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Receive email notifications for alerts and summaries</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-email">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Overspending Alerts Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">🚨 Overspending & Spending Spike Alerts</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Alert when unusually large transactions or category spikes occur</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-overspending">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Budget Alerts Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">⚠️ Budget Exceeded & Threshold Warnings</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Alert at 80%, 90% threshold and 100% budget exceeded</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-budget">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Saving Goals Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">🎯 Saving Goal Milestones</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Congratulate when saving targets are reached</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-goal">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Scheduled Reminders Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">🔔 Transaction Scheduled Reminders</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Notify when a scheduled transaction date is due</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-reminder">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                            <!-- Monthly Summary Toggle -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--theme-surface-2); border-radius: 10px; border: 1px solid var(--theme-border);">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--theme-text);">📊 Monthly Financial Summary Report</div>
+                                    <div style="font-size: 0.85rem; color: var(--theme-secondary);">Monthly digest with total income, expenses, and savings rate</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="pref-summary">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+
+                        </div>
+
+                        <div class="profile-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button type="submit" id="save-pref-btn" class="btn btn-primary">
+                                Save Preferences
+                            </button>
+                            <button type="button" id="test-summary-btn" class="btn btn-ghost" style="border: 1px solid var(--theme-border);">
+                                📧 Send Monthly Summary Now
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
 
                 <div class="appearance-card">
 

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Email Verification — FinPocket. Verify your account email.">
+    <title>Email Verification — FinPocket</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <style>
+        .verify-card {
+            text-align: center;
+        }
+        .verify-icon {
+            font-size: 54px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: bounceIn 0.6s ease;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .resend-box {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: var(--border-radius-md, 10px);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .spinner-large {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(20, 184, 166, 0.2);
+            border-top-color: var(--primary, #14b8a6);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-page">
+        <div class="auth-card verify-card">
+            <div class="auth-header">
+                <a href="index.html" class="auth-logo">
+                    <div class="logo-icon">💰</div>
+                    <span>FinPocket</span>
+                </a>
+            </div>
+
+            <div id="verify-alert" class="auth-alert"></div>
+
+            <!-- Verification State Container -->
+            <div id="verify-state">
+                <div class="spinner-large"></div>
+                <h2>Verifying Email</h2>
+                <p style="color: var(--text-secondary); margin-top: 8px;">Please wait while we verify your email address...</p>
+            </div>
+
+            <!-- Resend Form (shown if expired/error) -->
+            <div id="resend-container" class="resend-box" style="display: none;">
+                <h4 style="margin-bottom: 8px; color: var(--text-primary);">Need a new verification link?</h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    Enter your email address below to receive a new verification link.
+                </p>
+                <form id="resend-form" novalidate>
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <input type="email" id="resend-email" class="form-control"
+                               placeholder="Enter your registered email" required>
+                    </div>
+                    <button type="submit" id="resend-btn" class="btn btn-primary" style="width: 100%;">
+                        Resend Verification Email
+                    </button>
+                </form>
+            </div>
+
+            <div class="auth-footer" style="margin-top: 28px;">
+                <a href="login.html">← Back to Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/verify-email.js"></script>
+</body>
+</html>
