@@ -141,37 +141,6 @@ public class FinPocketApplication {
 class MongoConfig {
 }
 
-@Configuration
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
-        name = "spring.data.mongodb.uri",
-        havingValue = "mongodb://localhost:27017/finpocket_db",
-        matchIfMissing = true
-)
-class EmbeddedMongoConfig {
-
-    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(EmbeddedMongoConfig.class);
-
-    @Bean(destroyMethod = "shutdown")
-    public MongoServer mongoServer() {
-        MongoServer server = new MongoServer(new MemoryBackend());
-        InetSocketAddress serverAddress = server.bind();
-        logger.info("==================================================================");
-        logger.info("Embedded in-memory MongoDB server started on port {}", serverAddress.getPort());
-        logger.info("==================================================================");
-        return server;
-    }
-
-    @Bean
-    @Primary
-    public MongoClient mongoClient(MongoServer mongoServer) {
-        InetSocketAddress serverAddress = mongoServer.getLocalAddress();
-        String connectionString = "mongodb://localhost:" + serverAddress.getPort() + "/finpocket_db";
-        logger.info("Connecting Spring Data MongoDB to {}", connectionString);
-        return MongoClients.create(connectionString);
-    }
-}
-
-
 
 // ============================================================
 // 3. ENUMS
