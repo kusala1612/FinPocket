@@ -83,11 +83,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import de.bwaldvogel.mongo.MongoServer;
-import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 
 import java.io.IOException;
 import java.math.BigDecimal;
