@@ -12,6 +12,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+
 import org.springframework.http.HttpMethod;
 
 import jakarta.annotation.PostConstruct;
@@ -83,7 +84,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
-
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.SendEmailRequest;
+import com.resend.services.emails.model.SendEmailResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -2568,12 +2572,14 @@ interface NotificationRepository
             String alertKey);
 }
 
-
 @Service
 class EmailService {
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
+
+    @Value("${RESEND_FROM_EMAIL:onboarding@resend.dev}")
+    private String resendFromEmail;
 
     @Value("${app.frontend.url:http://localhost:5500}")
     private String frontendUrl;
@@ -2584,32 +2590,40 @@ class EmailService {
             String message) {
 
         if (to == null || to.trim().isEmpty()) {
+            System.err.println("FinPocket email failed: recipient email is empty.");
             return;
         }
 
-        System.out.println("[FinPocket NOTIFICATION EMAIL] To: " + to + " | Subject: " + subject + "\n" + message);
-
-        if (mailSender == null) {
+        if (resendApiKey == null || resendApiKey.trim().isEmpty()) {
+            System.err.println("FinPocket email failed: RESEND_API_KEY is not configured.");
             return;
         }
 
         try {
-            SimpleMailMessage mail =
-                    new SimpleMailMessage();
+            Resend resend = new Resend(resendApiKey);
 
-            mail.setTo(to);
-            mail.setSubject(subject);
-            mail.setText(message);
+            SendEmailRequest request = SendEmailRequest.builder()
+                    .from(resendFromEmail)
+                    .to(to)
+                    .subject(subject)
+                    .html(
+                            "<html><body>"
+                            + "<p>" + message.replace("\n", "<br>") + "</p>"
+                            + "</body></html>"
+                    )
+                    .build();
 
-            mailSender.send(mail);
+            SendEmailResponse response = resend.emails().send(request);
 
             System.out.println(
-                    "FinPocket email notification sent to " + to);
+                    "FinPocket email sent successfully to " + to
+                    + " | Resend ID: " + response.getId());
 
         } catch (Exception e) {
             System.err.println(
-                    "FinPocket email notification failed for "
-                            + to + ": " + e.getMessage());
+                    "FinPocket email failed for " + to
+                    + ": " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -2630,6 +2644,8 @@ class EmailService {
 
         sendNotification(to, subject, message);
     }
+    
+
 
     public void sendPasswordResetEmail(String to, String fullName, String token) {
         String resetUrl = frontendUrl + "/reset-password.html?token=" + token;
