@@ -3,8 +3,7 @@
  * Centralized API communication with JWT token management
  */
 
-const API_BASE_URL = window.API_BASE_URL || 'http://localhost:10000/api';
-
+const API_BASE_URL = window.API_BASE_URL || 'https://finpocket.onrender.com/api';
 /**
  * Make an authenticated API request
  * @param {string} endpoint - API endpoint (e.g., '/auth/login')
