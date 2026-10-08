@@ -35,12 +35,27 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(url, config);
 
-        // Handle 401 - Unauthorized (expired/invalid token)
-        if (response.status === 401) {
-            clearAuthData();
-            window.location.href = '/login.html';
-            throw new Error('Session expired. Please login again.');
-        }
+        // Handle 401 - Unauthorized
+if (response.status === 401) {
+    const publicAuthEndpoints = [
+        '/auth/login',
+        '/auth/register',
+        '/auth/verify-email',
+        '/auth/resend-verification',
+        '/auth/forgot-password',
+        '/auth/reset-password'
+    ];
+
+    const isPublicAuthEndpoint = publicAuthEndpoints.some(
+        publicEndpoint => endpoint === publicEndpoint
+    );
+
+    if (!isPublicAuthEndpoint) {
+        clearAuthData();
+        window.location.href = '/login.html';
+        throw new Error('Session expired. Please login again.');
+    }
+}
 
         // Handle 403 - Forbidden
         if (response.status === 403) {
