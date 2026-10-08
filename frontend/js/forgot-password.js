@@ -4,7 +4,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // Redirect if already logged in
-    if (redirectIfAuthenticated()) return;
 
     const form = document.getElementById('forgot-form');
     const emailInput = document.getElementById('forgot-email');

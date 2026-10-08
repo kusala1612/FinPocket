@@ -4,7 +4,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // Redirect if already logged in
-    if (redirectIfAuthenticated()) return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
