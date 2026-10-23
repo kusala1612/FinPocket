@@ -23,8 +23,12 @@ async function registerUser(fullName, email, password, confirmPassword, phone) {
 /**
  * Login user and store authentication data
  */
-async function loginUser(email, password) {
-    const response = await apiPost('/auth/login', { email, password });
+async function loginUser(email, password, turnstileToken) {
+    const response = await apiPost('/auth/login', {
+        email,
+        password,
+        turnstileToken
+    });
 
     if (response.success && response.token) {
         // Store token and user data

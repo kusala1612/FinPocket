@@ -1,4 +1,14 @@
 package com.finpocket;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Optional;
 // ============================================================
 // IMPORTS
@@ -404,6 +414,7 @@ class LoginRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+    private String turnstileToken;
 }
 
 
@@ -528,8 +539,56 @@ class AuthService {
                 .emailVerified(false)
                 .build();
     }
+    private boolean verifyTurnstile(String token) {
+    if (turnstileSecretKey == null || turnstileSecretKey.isBlank()
+            || token == null || token.isBlank()) {
+        return false;
+    }
+
+    try {
+        String body = "secret="
+                + URLEncoder.encode(
+                        turnstileSecretKey, StandardCharsets.UTF_8)
+                + "&response="
+                + URLEncoder.encode(token, StandardCharsets.UTF_8);
+
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                    "https://challenges.cloudflare.com/turnstile/v0/siteverify"))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            return false;
+        }
+
+        JsonNode result = objectMapper.readTree(response.body());
+        return result.path("success").asBoolean(false);
+
+    } catch (Exception e) {
+        System.err.println(
+                "Turnstile verification failed: " + e.getMessage());
+        return false;
+    }
+}
+
 
     public AuthResponse login(LoginRequest request) {
+        if (!verifyTurnstile(request.getTurnstileToken())) {
+    throw new IllegalArgumentException(
+            "Security verification failed. Please try again."
+    );
+}
 
         String email = request.getEmail().trim().toLowerCase();
 
@@ -662,6 +721,11 @@ class AuthService {
 
         return ApiResponse.success("A new verification link has been sent to your email.");
     }
+    @Value("${TURNSTILE_SECRET_KEY:}")
+private String turnstileSecretKey;
+
+@Autowired
+private ObjectMapper objectMapper;
 }
 
 

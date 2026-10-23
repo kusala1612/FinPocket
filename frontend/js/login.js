@@ -46,14 +46,32 @@ document.addEventListener('DOMContentLoaded', () => {
             passwordInput.focus();
             return;
         }
+        const turnstileToken =
+    form.querySelector('[name="cf-turnstile-response"]')?.value?.trim() || '';
+
+if (!turnstileToken) {
+    showAlert(
+        'login-alert',
+        'Please complete the security verification.'
+    );
+
+    if (window.turnstile) {
+        window.turnstile.reset();
+    }
+
+    return;
+}
 
         // Disable button and show loading
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner"></span> Signing in...';
 
         try {
-            const response = await loginUser(email, password);
-
+            const response = await loginUser(
+                email,
+                password,
+                turnstileToken
+            );
             if (response.success) {
                 showAlert('login-alert', 'Login successful! Redirecting...', 'success');
 
@@ -68,6 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             showAlert('login-alert', error.message || 'Invalid email or password');
+            if (window.turnstile) {
+    window.turnstile.reset();
+}
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Sign In';
         }
