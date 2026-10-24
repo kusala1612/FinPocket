@@ -277,3 +277,97 @@
         align-items: flex-start;
     }
 }
+
+/* ===== Login Page Layout Fix ===== */
+
+#login-form .form-options {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 14px 20px;
+    margin: 24px 0;
+}
+
+/* Keep the security label and CAPTCHA together */
+#login-form .form-options > label:not(.remember-me):first-child {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+#login-form .cf-turnstile {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Align Remember me and Forgot password */
+#login-form .remember-me {
+    grid-column: 1;
+    margin: 0;
+    min-width: 0;
+}
+
+#login-form .forgot-link {
+    grid-column: 2;
+    justify-self: end;
+    text-align: right;
+    margin: 0;
+}
+
+/* Keep the sign-in button separate from the CAPTCHA */
+#login-form #login-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+}
+
+/* Prevent the login card from becoming too wide */
+.auth-card {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 480px;
+}
+
+/* Small screens */
+@media (max-width: 480px) {
+    #login-form .form-options {
+        column-gap: 10px;
+    }
+
+    #login-form .remember-me,
+    #login-form .forgot-link {
+        font-size: 13px;
+    }
+}
+
+/* Final login page polish */
+#login-form .cf-turnstile {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    overflow: visible;
+}
+
+#login-form .form-options {
+    margin-top: 22px;
+    margin-bottom: 22px;
+}
+
+#login-form .form-group {
+    margin-bottom: 24px;
+}
+
+#login-form #login-btn {
+    margin-top: 8px;
+}
+
+.auth-card {
+    padding: 32px;
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 24px 20px;
+    }
+}
